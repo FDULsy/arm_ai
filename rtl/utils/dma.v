@@ -1,11 +1,13 @@
-module dma #(parameter AW=11) (
+module dma #(parameter AW=11,IFW=8) (
     input [AW-1 : 0] base,
     input [AW-1 : 0] size,
     input [AW-1 : 0] step,
+    input [IFW-1:0]  info,
     input            start_valid,
     output           start_ready,
 
     output reg [AW-1 : 0] s_addr,
+    output reg [IFW-1:0]  s_info,
     output reg        s_first,
     output reg        s_last,   
     output reg        s_valid,
@@ -21,10 +23,14 @@ reg [AW-1 : 0] step_r;
 assign start_ready = (~s_valid) || (s_ready && s_last);
 
 always @(posedge clk or negedge rst_n) begin
-    if(!rst_n) 
+    if(!rst_n) begin
+        s_info <= 0;
         step_r <= 1'b0;
-    else if(start_valid && start_ready) 
+    end
+    else if(start_valid && start_ready) begin
+        s_info <= info;
         step_r <= step;
+    end
 end
 
 always @(posedge clk or negedge rst_n) begin
