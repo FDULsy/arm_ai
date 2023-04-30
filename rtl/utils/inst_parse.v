@@ -1,6 +1,6 @@
 module inst_parse #(parameter IW = 32    ,
                               IN = 6     ,
-                              IPW = IN*DW ,
+                              IPW = IN*IW ,
                               ID = 4'h0  
 ) (
     //{run_1, id_3, inst_addr_4, inst_prior_2, rfu_6}
@@ -31,13 +31,14 @@ wire [5:0] inst_rfu;
 wire [15:0] inst_data;
 wire inst_start_en;
 
-wire [DW-1:0] inst_s0_data;
+wire [IW-1:0] inst_s0_data;
 wire inst_s0_valid;
 wire inst_s0_ready;
 
 assign {inst_run, inst_id, inst_addr, inst_prior, inst_rfu, inst_din} = inst_m_data;
 assign inst_start_en=(inst_id==ID) && inst_run;
-assign 
+
+
 assign inst_s0_data = inst_m_data;
 assign inst_s0_valid = inst_m_valid && (inst_id!=ID);
 axi_rs #(.DW(32)) i_axi_rs(
@@ -60,7 +61,7 @@ always @(posedge clk or negedge rst_n) begin
     else if(inst_start_en && inst_m_valid && inst_m_ready)
         start_valid <= 1'b1;
     else if(inst_m_ready)
-        start_valid <= 0'
+        start_valid <= 1'b0;
 end
 
 always @(posedge clk or negedge rst_n) begin

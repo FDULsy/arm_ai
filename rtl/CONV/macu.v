@@ -3,8 +3,11 @@ module macu #(parameter DW = 8,
 )(
     input [DW-1:0]        xi,
     input [DW-1:0]        wi,
-    input [ADDW-1:0]      p_sum,
+    input [ADDW-1:0]      p_sum_in,
     input                 w_en,
+ 
+    output reg [ADDW:0]   p_sum_out,
+    output reg [DW-1:0]   x_pass,
     output reg [DW-1:0]   wi_pass,
     output reg            w_en_pass,
     input clk,
@@ -14,10 +17,9 @@ module macu #(parameter DW = 8,
 wire [8 :0] x,w;
 wire [9:0] p;
 reg [9:0] p_r;
-wire [ADDW:0] p_sum_new;
-reg [ADDW:0] p_sum_new_r; 
-assign x={xi[7],1'b0,xi[6:0]};
-assign w={wi[7],1'b0,wi[6:0]};
+reg [ADDW-1:0] p_sum_in_r; 
+assign x={xi[7],xi};
+assign w={wi[7],wi};
 
 EG4_LOGIC_MULT #(
 .INPUT_WIDTH_A (9 ),
@@ -43,19 +45,22 @@ EG4_LOGIC_MULT #(
 );
 
 always @(posedge clk or negedge rst_n) begin
-    if(!rst_n)
-        p_r<9'h0;
-    else
-        p_r<=p;
+    if(!rst_n) begin
+        p_r <= 9'h0;
+        p_sum_in_r<= 0;
+    end
+    else begin
+        p_r<=p[8:0];
+        p_sum_in_r<= p_sum_in;
 end
 
-assign p_sum_new= p_r+p_sum;
+assign p_sum_new= p_r+p_sum_in_r;
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
-        p_sum_new_r<9'h0;
+        p_sum_out<9'h0;
     else
-        p_sum_new_r<=p_sum_new;
+        p_sum_out<=p_sum_new;
 end
 
 always @(posedge clk or negedge rst_n) begin

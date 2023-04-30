@@ -1,4 +1,4 @@
-module mac #(parameter DW=64
+module mac #(parameter DW=64,WW=48
 ) (
     input [DW-1:0]   mac_m_data,
     input            mac_m_valid,
@@ -9,6 +9,8 @@ module mac #(parameter DW=64
 
     
 );
-    
-localparam  WW=48 ;
+ 
+
+
+ 
 endmodule

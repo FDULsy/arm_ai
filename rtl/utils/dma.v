@@ -44,7 +44,7 @@ always @(posedge clk or negedge rst_n) begin
     end
     else if(s_valid && s_ready) begin
         s_addr <= s_addr + step_r;
-        cnt < cnt -1'b1;
+        cnt <= cnt -1'b1;
     end
 end
 

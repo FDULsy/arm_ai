@@ -26,7 +26,7 @@ avr_frs #(.DW(DW)) i_avr_frs(
 
     .clk(clk),
     .rst_n(rst_n)
-)
+);
 
 avr_brs #(.DW(DW)) i_avr_brs(
     .m_data(s0_data),
@@ -39,6 +39,6 @@ avr_brs #(.DW(DW)) i_avr_brs(
 
     .clk(clk),
     .rst_n(rst_n)
-)
+);
     
 endmodule

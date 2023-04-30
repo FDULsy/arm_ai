@@ -1,25 +1,26 @@
-module dma_dim2 #(parameter AW=11 ,IFW=0
+module dma_dim2 #(parameter AW=11 ,IFW=0   //IFW:INFO wedth
 ) (
-    input [AW-1:0]    base;
-    input [3:0]  dim0_size;
-    input [3:0]  dim0_step;
-    input [3:0]  dim1_size;
-    input [3:0]  dim1_step;
-    input        start_valid;
-    output       start_ready;
+    input [AW-1:0]    base,
+    input [3:0]  dim0_size,
+    input [3:0]  dim0_step,
+    input [3:0]  dim1_size,
+    input [3:0]  dim1_step,
+    input        start_valid,
+    output       start_ready,
 
-    output [AW-1:0]  s_addr;
-    output           s_first;
-    output           s_last;
-    output           s_valid;
-    input            s_ready;
+    output [AW-1:0]  s_addr,
+    output           s_first,
+    output           s_last,
+    output           s_valid,
+    input            s_ready,
     
     input  clk,
     input rst_n
 );
 
-localparam IFW1 = IFW+2*AW;
-localparam IFW0 = IFW+2;
+localparam IFW1 = IFW+2*AW ;
+localparam IFW0 = IFW+2 ;
+
 wire [AW-1:0] lp1_addr;
 wire lp1_first;
 wire lp1_last;
@@ -40,10 +41,10 @@ wire [IFW0-1:0] lp0_info;
 
 
 assign info = {dim0_size,dim0_step};
-assign lp1_ready=lp0_ready
+assign lp1_ready=lp0_ready;
 
 
-dma #(AW(AW),IFW(IFW1)) i_dma_lp1(
+dma #(.AW(AW),.IFW(IFW1)) i_dma_lp1(
     .base(base),
     .size(dim1_size),
     .step(dim1_step),
@@ -67,7 +68,7 @@ assign lp0_valid = lp1_valid;
 assign {lp0_size,lp0_step} = lp1_info;
 assign info0 = {lp1_first,lp1_last};
 
-dma #(AW(AW),IFW(IFW0)) i_dma_lp0(
+dma #(.AW(AW),.IFW(IFW0)) i_dma_lp0(
     .base(lp0_base),
     .size(lp0_size),
     .step(lp0_step),
@@ -87,7 +88,7 @@ dma #(AW(AW),IFW(IFW0)) i_dma_lp0(
 );
 
 assign s_first=lp0_info[IFW0-1] & lp0_first;
-assign s_last=lp0info[IFW0-2] & lp0_last;
+assign s_last=lp0_info[IFW0-2] & lp0_last;
 
 
 endmodule

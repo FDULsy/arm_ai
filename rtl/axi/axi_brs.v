@@ -3,8 +3,8 @@ module axi_brs #(parameter DW='d64) (
     input             m_valid,
     output            m_ready,
 
-    output reg [DW-1 : 0] s_data,
-    output reg            s_valid,
+    output  [DW-1 : 0] s_data,
+    output             s_valid,
     input                 s_ready,
 
     input                 clk,

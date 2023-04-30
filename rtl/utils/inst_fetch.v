@@ -19,7 +19,7 @@ wire [IW-1:0] inst;
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
         PC <= 0;
-    else if(inst_s_ready && inst_s_valid)
+    else if(instgen_s_ready && instgen_s_valid)
         PC <= PC+1;
     else
         PC <= PC;
