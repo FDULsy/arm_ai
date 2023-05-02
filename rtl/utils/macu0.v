@@ -1,23 +1,22 @@
 module macu #(parameter DW = 8,
-                        ADDW=10                   
+                        CW=16                   
 )(
     input [DW-1:0]        xi,
     input [DW-1:0]        wi,
-    input [ADDW-1:0]      p_sum_in,
+    input [CW-1:0]        ci,
     input                 w_en,
  
-    output reg [ADDW:0]   p_sum_out,
-    output reg [DW-1:0]   x_pass,
-    output reg [DW-1:0]   wi_pass,
-    output reg            w_en_pass,
+    output reg [CW:0]     co,
     input clk,
     input rst_n
 );
 
-wire [8 :0] x,w;
-wire [9:0] p;
-reg [9:0] p_r;
-reg [ADDW-1:0] p_sum_in_r; 
+
+wire [ 8 : 0] x,w;
+wire [17 : 0] p;
+reg  [15 : 0] p_r;
+reg  [CW-1 : 0] ci_r; 
+wire [  CW : 0] co_w;
 assign x={xi[7],xi};
 assign w={wi[7],wi};
 
@@ -47,31 +46,21 @@ EG4_LOGIC_MULT #(
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         p_r <= 9'h0;
-        p_sum_in_r<= 0;
+        ci_r<= 0;
     end
     else begin
-        p_r<=p[8:0];
-        p_sum_in_r<= p_sum_in;
+        p_r<=p[15:0];
+        ci_r<= ci;
+    end
 end
 
-assign p_sum_new= p_r+p_sum_in_r;
+assign co_w= p_r+ci_r;
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
-        p_sum_out<9'h0;
+        co<9'h0;
     else
-        p_sum_out<=p_sum_new;
-end
-
-always @(posedge clk or negedge rst_n) begin
-    if(!rst_n) begin
-        wi_pass<=0;
-        w_en_pass<=0;
-    end
-    else begin
-        wi_pass<=wi;
-        w_en_pass<=w_en;
-    end
+        co<=co_w;
 end
 
 
