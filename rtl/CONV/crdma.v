@@ -2,6 +2,7 @@ module crdma #(parameter DW=64,
                          IW=32,
                          IN = 6     ,
                          IPW = IN*(IW-16) ,
+                         AW=11,
                          ID = 4'h0 
 ) (
     //input [IW-1 : 0]  inst_m_data,
@@ -12,11 +13,11 @@ module crdma #(parameter DW=64,
     output            inst_s_valid,
     input             inst_s_ready,
 
-    output [AW-1:0]   clm_addr,
-    output            clm_addr_first,
-    output            clm_addr_last,
-    output            clm_addr_valid,
-    input             clm_addr_ready,
+    output [AW-1:0]   ifm_addr,
+    output            ifm_addr_first,
+    output            ifm_addr_last,
+    output            ifm_addr_valid,
+    input             ifm_addr_ready,
     
     input [DW-1 : 0]  crdma_m_data,
     input             crdma_m_first,
@@ -34,10 +35,10 @@ module crdma #(parameter DW=64,
     input rst_n
 );
 
-wire inst_m_data;
+wire [IW-1:0] inst_m_data;
 wire inst_m_valid;
 wire inst_m_ready;
-
+ 
 wire [IPW-1:0] m_local_inst;
 wire [IPW-1:0] s_local_inst;
 wire [1:0] start_prior;
@@ -57,9 +58,9 @@ inst_parse #(IW(IW),IN(IN),IPW(IPW),ID(ID)) i_inst_parse(
     .inst_m_valid(inst_m_valid),
     .inst_m_ready(inst_m_ready),
 
-    .inst_s_data(),
-    .inst_s_valid(),
-    .inst_s_ready()
+    .inst_s_data(inst_s_data),
+    .inst_s_valid(inst_s_valid),
+    .inst_s_ready(inst_s_ready),
 
     .local_inst(m_local_inst),
     .start_prior(start_prior),
@@ -128,11 +129,11 @@ inter_face #(.AW(AW),.DW(DW)) i_if(
     .m_addr_valid(addr_valid),
     .m_addr_ready(addr_ready),
 
-    .s_addr(clm_addr),
-    .s_addr_first(clm_addr_first),
-    .s_addr_last(clm_addr_last),
-    .s_addr_valid(clm_addr_valid),
-    .s_addr_ready(clm_addr_ready),
+    .s_addr(ifm_addr),
+    .s_addr_first(ifm_addr_first),
+    .s_addr_last(ifm_addr_last),
+    .s_addr_valid(ifm_addr_valid),
+    .s_addr_ready(ifm_addr_ready),
 
     .m_data(crdma_m_data),
     .m_data_first(crdma_m_first),
@@ -145,20 +146,6 @@ inter_face #(.AW(AW),.DW(DW)) i_if(
     .s_data_last(crdma_s_last),
     .s_data_valid(crdma_s_valid),
     .s_data_ready(crdma_s_ready),
-
-    .clk(clk),
-    .rst_n(rst_n)
-);
-
-
-axi_frs #(.DW(IW)) i_axi_frs_inst(
-    .m_data(inst_m_data),
-    .m_valid(inst_m_valid),
-    .m_ready(inst_m_ready),
-
-    .s_data(inst_s_data),
-    .s_valid(inst_s_valid),
-    .s_ready(inst_s_ready),
 
     .clk(clk),
     .rst_n(rst_n)

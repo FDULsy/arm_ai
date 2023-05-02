@@ -1,6 +1,6 @@
 module inst_parse #(parameter IW = 32    ,
                               IN = 6     ,
-                              IPW = IN*IW ,
+                              IPW = 16*6 ,
                               ID = 4'h0  
 ) (
     //{run_1, id_3, inst_addr_4, inst_prior_2, rfu_6}
