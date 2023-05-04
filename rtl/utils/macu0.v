@@ -10,11 +10,12 @@ module macu #(parameter DW = 8,
     input clk,
     input rst_n
 );
-
+localparam SE =CW-16 ;
 
 wire [ 8 : 0] x,w;
 wire [17 : 0] p;
-reg  [15 : 0] p_r;
+reg  [CW-1 : 0] p_r;
+wire [CW-1 : 0] p_e;
 reg  [CW-1 : 0] ci_r; 
 wire [  CW : 0] co_w;
 assign x={xi[7],xi};
@@ -43,13 +44,15 @@ EG4_LOGIC_MULT #(
 .rstdn (rst_n )
 );
 
+assign p_e = {SE{p[15]},p[15:0]};
+
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
-        p_r <= 9'h0;
+        p_r <= 0;
         ci_r<= 0;
     end
     else begin
-        p_r<=p[15:0];
+        p_r<=p_e;
         ci_r<= ci;
     end
 end
