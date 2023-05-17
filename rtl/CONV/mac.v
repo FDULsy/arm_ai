@@ -176,4 +176,11 @@ mac_row #(.DW(DW),.WW(WW),.CW(CW),.COLUMN(COLUMN)) i_mac_row7(
     .rst_n(rst_n)
 );
 
+genvar i;
+generate
+    for (j =0 ;j<COLUMN ;j=j+1 ) begin
+        assign mac_s_data[i*OW +: OW] = {3'b0,co7[i*CW +: CW]};
+    end
+endgenerate
+
 endmodule

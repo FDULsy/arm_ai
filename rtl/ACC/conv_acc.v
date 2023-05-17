@@ -22,7 +22,7 @@ module conv_acc #(
 
     //2路输出结果相同，由valid控制写使能
     output      [DW*6-1 : 0] m_sum,
-    output                   m_valid,
+    output  reg              m_valid,
     output      [DW*6-1 : 0] s_sum,
     output  reg              s_valid,
 
@@ -35,7 +35,7 @@ reg [AW-1 : 0] base1_r;
 reg [AW-1 : 0] base2_r;
 reg [7:0]      size_r;
 reg            start_r;
-reg            first__k_r;
+reg            first_k_r;
 reg            last_k_r;
 
 //first打1拍，与输入data到来时刻对齐
@@ -91,12 +91,14 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 always @(posedge clk or negedge rst_n) begin
-    if(rst_n)
+    if(!rst_n)
         residue <= 0;
     else if(residue==0 && start_r)
         residue <= size_r;
     else if(residue==0 && start)
         residue <= size;
+    else if(residue==0)
+        residue <= residue;
     else
         residue <= residue-1;
 end

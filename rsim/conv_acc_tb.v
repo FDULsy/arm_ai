@@ -1,18 +1,20 @@
 `timescale 1ps/1ps
 module conv_acc_tn #(
-    parameter AW=8 , DW=22 ,DN=6  
+    parameter AW=8 , DW=22 ,DN=1  
 );
 
 reg clk,rst_n;
 reg [AW-1:0] base1,base2;
 reg [7:0] size;
 reg start,first_k,last_k;
-wire [DW-1:0] m_addr1,m_addr2,m_addr3;
+wire [AW-1:0] m_addr1,m_addr2,m_addr3;
 
 reg w_en1,w_en2,w_en3;
 reg [DW-1:0] w_data1,w_data2,w_data3;
+wire [DW*DN-1:0] m_data1,m_data2,m_data3;
 reg [AW-1:0] w_addr1,w_addr2,w_addr3;
-
+wire [DW*DN-1:0] m_sum,s_sum;
+wire m_valid,s_valid;
 //=====例化=====
 conv_acc #(.AW(AW),.DW(DW),.DN(DN)) i_conv_acc(
     .m_data1(m_data1),

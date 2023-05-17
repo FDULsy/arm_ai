@@ -59,7 +59,7 @@ initial begin
     #10 r_addr=r_addr+1;
     #10 r_addr=r_addr+1;
     #10 r_addr=r_addr+1;
-    #10 r_addr=r_addr+5'b11;
+    #10 r_addr=r_addr+1;
     #10 r_addr=r_addr+1;
     #10 r_addr=r_addr+5'b10;
     #10 r_en = 0;r_addr=r_addr+1;
