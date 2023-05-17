@@ -1,14 +1,12 @@
 `timescale 1ps/1ps
-module  #(
-    parameter AW=5 , DW=8 , DN=1  
-);
+module ram_tb #(parameter AW=5 , DW=8 , DN=1  )();
 
 reg clk,rst_n;
 reg [AW-1:0] r_addr,w_addr;
 reg r_en,w_en;
 reg [DW-1:0] w_data;
 
-wire r_data;
+wire [DW-1:0] r_data;
 
 //=====例化=====
 ram_behavior #(.AW(AW),.DW(DW)) i_ram(
@@ -44,23 +42,26 @@ initial begin
     //input inital
     r_addr=0;w_addr=0;r_en=0;w_en=0;w_data=0;
     //
-    #16 w_en=1;w_data=1;
+    #16 w_en=1;
     #10 w_addr=w_addr+1;w_data=w_data+1;
     #10 w_addr=w_addr+1;w_data=w_data+1;
     #10 w_addr=w_addr+1;w_data=w_data+1;
     #10 w_addr=w_addr+1;w_data=w_data+1;
     #10 w_addr=w_addr+1;w_data=w_data+1;
     #10 w_addr=w_addr+1;w_data=w_data+1;
-    #10 w_addr=w_addr+1;w_data=w_data+1;
+    #10 w_addr=w_addr+1;w_data=-3;
     #10 w_addr=w_addr+1;w_data=w_data+1;
     #10 w_en=0;w_addr=w_addr+1;w_data=w_data+1;
     #10 w_addr=w_addr+1;w_data=w_data+1;
     #10 r_en=1;
     #10 r_addr=r_addr+1;
     #10 r_addr=r_addr+1;
-    #10 r_addr=r_addr+3;
     #10 r_addr=r_addr+1;
-    #10 r_addr=r_addr+2;
+    #10 r_addr=r_addr+1;
+    #10 r_addr=r_addr+1;
+    #10 r_addr=r_addr+5'b11;
+    #10 r_addr=r_addr+1;
+    #10 r_addr=r_addr+5'b10;
     #10 r_en = 0;r_addr=r_addr+1;
     #10 r_addr=r_addr+1;
     //

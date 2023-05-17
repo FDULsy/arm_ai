@@ -1,5 +1,5 @@
 //first last valid信号没写
-module mac #(parameter DW=8,WW=8,CW=21,ROW=8,COLUMN=6,OW=2*DW+5
+module mac #(parameter DW=8,WW=8,CW=19,ROW=8,COLUMN=6,OW=2*DW+6
 ) (
     input [ROW*DW-1:0]         mac_m_data,
     input                      mac_m_first,
@@ -34,6 +34,9 @@ wire [COLUMN*(CW)-1 : 0] co5;
 wire [COLUMN*(CW)-1 : 0] co6;
 wire [COLUMN*(CW)-1 : 0] co7;
 
+wire [2:0] m_info;
+wire [2:0] s_info;
+
 assign w_pass[0] = w;
 assign w_en_pass[0] = w_en; 
 assign c[0] ={48'h0,ci};
@@ -44,7 +47,7 @@ assign w_en_pass[ROW-1 : 1] =w_en_pass_r;
 
 genvar i;
 generate
-    for (i=0;i<ROW;i=i+1) begin: weight_pass
+    for (i=0;i<ROW-1;i=i+1) begin: weight_pass
         always @(posedge clk or negedge rst_n) begin
             if(!rst_n) begin
                 w_pass_r[i] <= 0;
@@ -56,6 +59,26 @@ generate
         end
     end
 endgenerate
+
+
+assign m_info={mac_m_first,mac_m_last,mac_m_valid};
+
+delay #(.DW(3),.DLT(16)) i_info_delay(
+    .xi(m_info),
+    .xo(s_info),
+
+    .clk(clk),
+    .rst_n(rst_n)
+);
+assign {mac_s_first,mac_s_last,mac_s_valid} = s_info;
+
+delay #(.DW(1),.DLT(16)) i_rdy_delay(
+    .xi(mac_s_ready),
+    .xo(mac_m_ready),
+
+    .clk(clk),
+    .rst_n(rst_n)
+);
 
 //row0
 mac_row #(.DW(DW),.WW(WW),.CW(CW),.COLUMN(COLUMN)) i_mac_row0(

@@ -37,6 +37,7 @@ generate
             else 
                 x_pass_r[i] <= x_pass[i];
         end
+    end
 endgenerate
 
     

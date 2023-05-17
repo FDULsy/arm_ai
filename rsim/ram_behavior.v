@@ -24,7 +24,7 @@ always @(posedge clk ) begin
     if(w_en)
         mem[w_addr] <= w_data;
 end
-
+/*
 genvar i;
 generate
     for ( i=0 ;i<2**AW ;i=i+1 ) begin
@@ -34,4 +34,5 @@ generate
         end
     end
 endgenerate
+*/
 endmodule
