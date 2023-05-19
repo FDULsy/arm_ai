@@ -3,7 +3,7 @@ module cmp2 #(
 ) (
     input      [DN*DW-1 : 0] m_data,
     input                    m_valid,
-    output     [DN*DW-1 : 0] s_data,
+    output reg  [DN*DW-1 : 0] s_data,
     output reg               s_valid,
 
 
@@ -12,8 +12,9 @@ module cmp2 #(
 );
 
 
-reg state;
-reg [DN*DW-1 : 0] data_tmp;
+reg  state;
+reg  [DN*DW-1 : 0] data_tmp;
+wire [DN*DW-1 : 0] s_data_w;
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
@@ -27,17 +28,19 @@ end
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
         data_tmp <= 0;
-    else if(m_valid)
+    else if(m_valid && !state)
         data_tmp <= m_data;
     else
         data_tmp <= data_tmp;
 end
 
-always @(posedge clk or negedge) begin
+always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
         s_valid <= 0;
-    else if(state == 1'b1)
+    else if(state)
         s_valid <= m_valid;
+    else
+        s_valid <= 0;
 end
 
 genvar i;
@@ -46,9 +49,16 @@ generate
         cmp #(.DW(DW)) i_cmp(
             .data1(   m_data[i*DW +: DW]),
             .data2( data_tmp[i*DW +: DW]),
-            .data_out(s_data[i*DW +: DW])
-        )
+            .data_out(s_data_w[i*DW +: DW])
+        );
     end
 endgenerate
+
+always @(posedge clk or negedge rst_n) begin
+    if(!rst_n)
+        s_data <= 0;
+    else 
+        s_data <= s_data_w;
+end
     
 endmodule

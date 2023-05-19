@@ -1,6 +1,6 @@
 `timescale 1ps/1ps
 module max_pool_tb #(
-    parameter AW=0 , DW=8 , DN=6  
+    parameter AW=0 , DW=8 , DN=1  
 );
 
 reg clk,rst_n;
@@ -88,7 +88,7 @@ initial begin
     #10 m_data=48'h101010101010;
     #10 m_data=48'h111111111111;//11 11
     #10 m_valid=0;m_max_pool_en=0;
-    #100 m_valid=1;m_data=0;
+    #100 m_valid=1;m_data=0;//00
     #10 m_data=48'h010101010101;//01
     #10 m_data=48'h020202020202;//02
     #10 m_data=48'h030303030303;//03

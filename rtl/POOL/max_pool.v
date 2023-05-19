@@ -18,13 +18,13 @@ module max_pool #(
 reg  [5:0] cnt;
 reg        state;//0:缓存第一行部分比较结果  1：比较1，2行
 
-reg cmp_valid;
+wire cmp_valid;
 wire [DN*DW-1 : 0] cmp_tmp;
-reg                cmp_tmp_valid;
+wire                cmp_tmp_valid;
 reg  [DN*DW-1 : 0] cmp_tmp_a [63:0];
 wire [DN*DW-1 : 0] s_cmp_data;
-reg  s_pass_valid;
-reg  s_cmp_valid;    
+wire  s_pass_valid;
+wire  s_cmp_valid;    
 wire s_valid_w;
 wire [DN*DW-1 : 0] s_data_w;
 
@@ -50,7 +50,7 @@ always @(posedge clk or negedge rst_n) begin
         state <= state;
 end
 
-cmp2 #(.DW(DW)) i_cmp2(
+cmp2 #(.DW(DW),.DN(DN)) i_cmp2(
     .m_data(m_data),
     .m_valid(cmp_valid),
     .s_data(cmp_tmp),
@@ -65,11 +65,11 @@ generate
     for (j=0 ;j<64 ;j=j+1 ) begin
         always @(posedge clk or negedge rst_n) begin
             if(!rst_n)
-                cmp_tmp_a[i] <= 0;
-            else if(!state && cnt==i)
-                cmp_tmp_a[i] <= cmp_tmp;
+                cmp_tmp_a[j] <= 0;
+            else if(!state && cnt==j)
+                cmp_tmp_a[j] <= cmp_tmp;
             else if(state && cmp_tmp_valid)
-                cmp_tmp_a[i] <= cmp_tmp_a[i+1];
+                cmp_tmp_a[j] <= cmp_tmp_a[j+1];
         end
     end
 endgenerate
