@@ -82,36 +82,36 @@ generate
             endcase
         end
 
-        mul #(.DW(MULW),.OW(18)) i_mul(
-            .d1(mul_1[i*MULW +: MULW]),
-            .d2(mul_2[i*MULW +: MULW]),
-            .do(p[i*PW +: PW]),
-            .clk (clk ),
-            .rst_n(rst_n)
-        );
-
-        // EG4_LOGIC_MULT #(
-        // .INPUT_WIDTH_A (9 ),
-        // . INPUT_WIDTH_B (9 ),
-        // .OUTPUT_WIDTH (18 ),
-        // . INPUTFORMAT ("SIGNED" ),
-        // . INPUTREGA ("ENABLE" ),
-        // . INPUTREGB ("ENABLE" ),
-        // . OUTPUTREG ("ENABLE" ),
-        // . IMPLEMENT ("DSP" ),
-        // . SRMODE ("ASYNC" )
-        // ) i_mul (
-        // .a ( mul_1[i*MULW +: MULW] ),
-        // .b ( mul_2[i*MULW +: MULW] ),
-        // .p ( p[i*PW +: PW] ),
-        // .cea (m_valid1 ),
-        // .ceb (m_valid1 ),
-        // .cepd (1'b1 ),
-        // .clk (clk ),
-        // .rstan (rst_n ),
-        // .rstbn (rst_n ),
-        // .rstdn (rst_n )
+        // mul #(.DW(MULW),.OW(18)) i_mul(
+        //     .d1(mul_1[i*MULW +: MULW]),
+        //     .d2(mul_2[i*MULW +: MULW]),
+        //     .do(p[i*PW +: PW]),
+        //     .clk (clk ),
+        //     .rst_n(rst_n)
         // );
+
+        EG4_LOGIC_MULT #(
+        .INPUT_WIDTH_A (9 ),
+        . INPUT_WIDTH_B (9 ),
+        .OUTPUT_WIDTH (18 ),
+        . INPUTFORMAT ("SIGNED" ),
+        . INPUTREGA ("ENABLE" ),
+        . INPUTREGB ("ENABLE" ),
+        . OUTPUTREG ("ENABLE" ),
+        . IMPLEMENT ("DSP" ),
+        . SRMODE ("ASYNC" )
+        ) i_mul (
+        .a ( mul_1[i*MULW +: MULW] ),
+        .b ( mul_2[i*MULW +: MULW] ),
+        .p ( p[i*PW +: PW] ),
+        .cea (m_valid1 ),
+        .ceb (m_valid1 ),
+        .cepd (1'b1 ),
+        .clk (clk ),
+        .rstan (rst_n ),
+        .rstbn (rst_n ),
+        .rstdn (rst_n )
+        );
 
 
         //shift

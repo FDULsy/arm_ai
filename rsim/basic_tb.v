@@ -8,9 +8,10 @@ reg clk,rst_n;
 
 //=====例化=====
 
+ (
 
-    (
-
+    .clk(clk),
+    .rst_n(rst_n)
 );
 
 
@@ -31,12 +32,9 @@ end
 
 initial begin
     //input inital
-
+    
     //
-    #16
-
-
-
+    #16 
 
     //
 
