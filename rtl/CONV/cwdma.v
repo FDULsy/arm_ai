@@ -16,7 +16,7 @@ module cwdma #(parameter DW=144,AW=11,
     input             cwdma_m_valid,
     output            cwdma_m_ready,
 
-    output [Dw-1:0]   cwdma_s_data,
+    output [DW-1:0]   cwdma_s_data,
     output            cwdma_s_first,
     output            cwdma_s_last,
     output            cwdma_s_valid,
@@ -38,7 +38,7 @@ wire          inst_s0_ready;
 
 wire [IPW-1:0] m_local_inst;
 wire [IPW-1:0] s_local_inst;
-wire [1:0] start_prior;
+//wire [1:0] start_prior;
 wire m_start_valid,s_start_valid;
 wire m_start_ready,s_start_ready;
 
@@ -65,7 +65,7 @@ inst_parse #(.IW(IW),.IN(IN),.IPW(IPW),.ID(ID)) i_inst_parse(
     .inst_s_ready(inst_s_ready),
 
     .local_inst(m_local_inst),
-    .start_prior(start_prior),
+    //.start_prior(start_prior),
     .start_valid(m_start_valid),
     .start_ready(m_start_ready),
 
@@ -104,7 +104,7 @@ assign dma_base = s_local_inst[0*16 +: AW];
 assign {dma_dim0_size,dma_dim0_step,dma_dim1_size,dma_dim1_step} = s_local_inst[1*16 +: 16];
 assign dmac = s_local_inst[2*16 +: 16];
 
-dma_dim2 #(AW(AW),IFW(0)) i_dma0(
+dma_dim2 #(.AW(AW),.IFW(0)) i_dma0(
     .base(dma_base),
     .dim0_size(dma_dim0_size),
     .dim0_step(dma_dim0_step),

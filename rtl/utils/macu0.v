@@ -21,17 +21,7 @@ wire [  CW : 0] co_w;
 assign x={xi[7],xi};
 assign w={wi[7],wi};
 
-EG4_LOGIC_MULT #(
-.INPUT_WIDTH_A (9 ),
-. INPUT_WIDTH_B (9 ),
-.OUTPUT_WIDTH (18 ),
-. INPUTFORMAT ("SIGNED" ),
-. INPUTREGA ("ENABLE" ),
-. INPUTREGB ("ENABLE" ),
-. OUTPUTREG ("ENABLE" ),
-. IMPLEMENT ("DSP" ),
-. SRMODE ("ASYNC" )
-) i_mul (
+mul9 i_mul (
 .a ( x ),
 .b ( w ),
 .p ( p ),
@@ -44,7 +34,7 @@ EG4_LOGIC_MULT #(
 .rstdn (rst_n )
 );
 
-assign p_e = {SE{p[15]},p[15:0]};
+assign p_e = {{SE{p[15]}},p[15:0]};
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
@@ -61,7 +51,7 @@ assign co_w= p_r+ci_r;
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
-        co<9'h0;
+        co<=9'h0;
     else
         co<=co_w;
 end

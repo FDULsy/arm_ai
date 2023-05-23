@@ -1,8 +1,9 @@
 module crdma #(parameter DW=64,
-                         IW=32,
-                         IN = 6     ,
-                         IPW = IN*(IW-16) ,
-                         AW=11,
+                         IW=36,
+                         IN = 3     ,
+                         IRW = 30   ,
+                         IPW = IN*IRW ,
+                         AW= 14,
                          ID = 4'h0 
 ) (
     //input [IW-1 : 0]  inst_m_data,
@@ -41,7 +42,7 @@ wire inst_m_ready;
  
 wire [IPW-1:0] m_local_inst;
 wire [IPW-1:0] s_local_inst;
-wire [1:0] start_prior;
+//wire [1:0] start_prior;
 wire m_start_valid,s_start_valid;
 wire m_start_ready,s_start_ready;
 
@@ -53,7 +54,7 @@ inst_fetch i_inst_fetch(
     .rst_n(rst_n)
 );
 
-inst_parse #(IW(IW),IN(IN),IPW(IPW),ID(ID)) i_inst_parse(
+inst_parse #(.IW(IW),.IN(IN),.IPW(IPW),.ID(ID)) i_inst_parse(
     .inst_m_data(inst_m_data),
     .inst_m_valid(inst_m_valid),
     .inst_m_ready(inst_m_ready),
@@ -63,7 +64,7 @@ inst_parse #(IW(IW),IN(IN),IPW(IPW),ID(ID)) i_inst_parse(
     .inst_s_ready(inst_s_ready),
 
     .local_inst(m_local_inst),
-    .start_prior(start_prior),
+    //.start_prior(start_prior),
     .start_valid(m_start_valid),
     .start_ready(m_start_ready),
 
@@ -85,11 +86,12 @@ axi_frs #(.DW(IPW)) i_axi_frs_local_inst(
 );
 
 //local_inst unpack
+wire [4:0]    r_info;
 wire [AW-1:0] dma_base;
-wire [3:0]    dma_dim0_size;
-wire [3:0]    dma_dim0_step;
-wire [3:0]    dma_dim1_size;
-wire [3:0]    dma_dim1_step;
+wire [6:0]    dma_dim0_size;
+wire          dma_dim0_step;
+wire [4:0]    dma_dim1_size;
+wire [6:0]    dma_dim1_step;
 wire [15:0]   dma_c;
 
 wire [AW-1 : 0] addr;
@@ -98,12 +100,21 @@ wire            addr_last;
 wire            addr_valid;
 wire            addr_ready;
 
-assign dma_base = s_local_inst[0*16 +: AW];
-assign {dma_dim0_size,dma_dim0_step,dma_dim1_size,dma_dim1_step} = s_local_inst[1*16 +: 16];
-assign dmac = s_local_inst[2*16 +: 16];
+wire [8:0] infop1;//9
+wire [9:0] infop2;//10
+wire [26:0] infop3;//27
+wire [45:0] info_bus
+
+assign r_info = s_local_inst[0*32+28 +: 4];
+assign dma_base = s_local_inst[0*32+11 +: AW];
+assign infop1 = s_local_inst[0*32+2 +: 9];
+
+assign {dma_dim0_size,dma_dim0_step,dma_dim1_size,dma_dim1_step} = s_local_inst[1*32+10 +: 20];
+assign infop2 = s_local_inst[1*32 +: 10];
+assign infop3 = s_local_inst[2*32+3 +: 27];
 
 
-dma_dim2 #(AW(AW),IFW(0)) i_dma0(
+dma_dim2 #(.AW(AW),.IFW(0)) i_dma0(
     .base(dma_base),
     .dim0_size(dma_dim0_size),
     .dim0_step(dma_dim0_step),

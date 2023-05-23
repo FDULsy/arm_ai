@@ -1,7 +1,7 @@
-module dma #(parameter AW=11,IFW=8) (
+module dma #(parameter AW=11,IFW=8,SZW=7,STW=5) (
     input [AW-1 : 0] base,
-    input [AW-1 : 0] size,
-    input [AW-1 : 0] step,
+    input [SZW-1 : 0] size,
+    input [STW-1 : 0] step,
     input [IFW-1:0]  info,
     input            start_valid,
     output           start_ready,
@@ -17,8 +17,8 @@ module dma #(parameter AW=11,IFW=8) (
     input             rst_n     
 );
     
-reg [AW-1 : 0] cnt;
-reg [AW-1 : 0] step_r;
+reg [SZW-1 : 0] cnt;
+reg [STW-1 : 0] step_r;
 
 assign start_ready = (~s_valid) || (s_ready && s_last);
 

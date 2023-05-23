@@ -1,9 +1,11 @@
-module inst_parse #(parameter IW = 32    ,
-                              IN = 6     ,
-                              IPW = 16*6 ,
-                              ID = 4'h0  
+module inst_parse #(parameter IW  = 36    ,
+                              IN  = 3     ,
+                              IRW = 30,
+                              IPW = IRW*IN ,
+                              ID = 2'b0  
 ) (
-    //{run_1, id_3, inst_addr_4, inst_prior_2, rfu_6}
+    //{run_1, id_2, inst_addr_2, res31}
+    
     input [IW-1 : 0] inst_m_data,
     input            inst_m_valid,
     output           inst_m_ready,
@@ -13,7 +15,7 @@ module inst_parse #(parameter IW = 32    ,
     input             inst_s_ready,
 
     output [IPW-1 : 0] local_inst,
-    output reg [1:0]  start_prior,
+    //output reg [1:0]  start_prior,
     output reg        start_valid,
     input             start_ready,
     
@@ -21,21 +23,22 @@ module inst_parse #(parameter IW = 32    ,
     input             rst_n
 );
 
-reg [IW-1 : 0] local_inst_r [IN-1 : 0];
+reg [IRW-1 : 0] local_inst_r [IN-1 : 0];
 
 wire inst_run;
-wire [2:0] inst_id;
-wire [3:0] inst_addr;
-wire [1:0] inst_prior;
-wire [5:0] inst_rfu;
-wire [15:0] inst_data;
+wire  inst_id;
+wire [1:0] inst_addr;
+//wire [1:0] inst_prior;
+wire [27:0] inst_data;
 wire inst_start_en;
 
 wire [IW-1:0] inst_s0_data;
 wire inst_s0_valid;
 wire inst_s0_ready;
+wire [IRW-1 : 0] inst_din;
 
-assign {inst_run, inst_id, inst_addr, inst_prior, inst_rfu, inst_din} = inst_m_data;
+//assign {inst_run, inst_id, inst_addr, inst_prior, inst_rfu, inst_din} = inst_m_data;
+assign {inst_run, inst_id, inst_addr,  inst_din} = inst_m_data;
 assign inst_start_en=(inst_id==ID) && inst_run;
 
 
@@ -64,12 +67,12 @@ always @(posedge clk or negedge rst_n) begin
         start_valid <= 1'b0;
 end
 
-always @(posedge clk or negedge rst_n) begin
-    if(!rst_n)
-        start_prior <= 0;
-    else if(inst_start_en && inst_m_valid && inst_m_ready)
-        start_prior <= inst_prior;
-end
+// always @(posedge clk or negedge rst_n) begin
+//     if(!rst_n)
+//         start_prior <= 0;
+//     else if(inst_start_en && inst_m_valid && inst_m_ready)
+//         start_prior <= inst_prior;
+// end
 
 genvar i;
 generate
@@ -80,7 +83,7 @@ generate
             else if(inst_addr==i) 
                 local_inst_r[i] <= inst_din;
         end
-        assign local_inst[32*i +: 32] = local_inst_r[i];
+        assign local_inst[IPW*i +: IPW] = local_inst_r[i];
     end
 endgenerate
 

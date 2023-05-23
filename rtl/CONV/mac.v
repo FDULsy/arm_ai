@@ -1,5 +1,5 @@
 //first last valid信号没写
-module mac #(parameter DW=8,WW=8,CW=19,ROW=8,COLUMN=6,OW=2*DW+6
+module mac #(parameter DW=8,WW=8,CW=19,ROW=8,COLUMN=6,OW=22
 ) (
     input [ROW*DW-1:0]         mac_m_data,
     input                      mac_m_first,
@@ -20,7 +20,7 @@ module mac #(parameter DW=8,WW=8,CW=19,ROW=8,COLUMN=6,OW=2*DW+6
     input rst_n
 );
 
-localparam EW = OW-CW;
+//localparam EW = OW-CW;
 
 //wire [COLUMN*WW-1 : 0] w_pass [ROW-1 : 0];
 wire [   COLUMN-1 : 0] w_en_pass [ROW-1 : 0];
@@ -200,7 +200,9 @@ genvar j;
 generate
     for (j =0 ;j<COLUMN ;j=j+1 ) begin
         //assign mac_s_data[j*OW +: OW] = {3'b1,co7[j*CW +: CW]};
-        assign mac_s_data[j*OW +: OW] = {{3{co7[j*CW+CW-1]}},co7[j*CW +: CW]};
+        //输出y=yreal/2，所以后续bias也要/2
+        //assign mac_s_data[j*OW +: OW] = co7[j*CW+1 +: CW-1];
+        assign mac_s_data[j*OW +: OW] = {{4{co7[j*CW+CW-1]}},co7[j*CW +: CW]};
     end
 endgenerate
 

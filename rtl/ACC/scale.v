@@ -7,7 +7,7 @@ module scale #(
     input [DN*MULW-1 : 0] m_data2,
     //input                 m_valid2,
     input [4 : 0]         n,
-    input                 relu_en,
+    input [1 : 0]         relu_en,//0x:不relu  10:relu  11:leaky_relu 
 
     output [DN*OW-1 : 0] s_data,
     output               s_valid,
@@ -37,12 +37,12 @@ wire signed [PW : 0] p_sft [DN-1 : 0];
 wire [DN-1 : 0] carry;
 wire [DN-1 : 0] sign;
 wire [DN-1 : 0] overflow;
-wire [DN-1 : 0] relu;
-reg  [DN-1 : 0] relu_en_r1;
-reg  [DN-1 : 0] relu_en_r2;
-reg  [DN-1 : 0] relu_en_r3;
+wire [DN*2-1 : 0] relu;
+reg  [1 : 0] relu_en_r1;
+reg  [1 : 0] relu_en_r2;
+reg  [1 : 0] relu_en_r3;
 wire [DN*OW-1 : 0] s_data_w1;
-wire [DN*OW-1 : 0] s_data_w2;
+reg  [DN*OW-1 : 0] s_data_w2;
 reg  [DN*OW-1 : 0] s_data_r;
 
 //sel:0x:取[22:14]  10：高9位前几为0，后几位不为0，取[13+SP -：9]  11：高9位全为0，取[13 -: 9]([13:5])
@@ -90,17 +90,7 @@ generate
         //     .rst_n(rst_n)
         // );
 
-        EG4_LOGIC_MULT #(
-        .INPUT_WIDTH_A (9 ),
-        . INPUT_WIDTH_B (9 ),
-        .OUTPUT_WIDTH (18 ),
-        . INPUTFORMAT ("SIGNED" ),
-        . INPUTREGA ("ENABLE" ),
-        . INPUTREGB ("ENABLE" ),
-        . OUTPUTREG ("ENABLE" ),
-        . IMPLEMENT ("DSP" ),
-        . SRMODE ("ASYNC" )
-        ) i_mul (
+        mul9 i_mul (
         .a ( mul_1[i*MULW +: MULW] ),
         .b ( mul_2[i*MULW +: MULW] ),
         .p ( p[i*PW +: PW] ),
@@ -123,8 +113,24 @@ generate
         assign overflow[i] = sign[i] ? (p_sft[i][9 +: 10] != 10'b1111111111) : (p_sft[i][9 +: 10] != 0);
         assign s_data_w1[i*OW +: OW] = overflow[i]? {sign[i],{7{~sign[i]}}} : {sign[i],p_sft[i][1 +: 7]};
         //relu
-        assign relu[i] = relu_en_r3 && sign[i];
-        assign s_data_w2[i*OW +: OW] =relu[i]? 0 : s_data_w1[i*OW +: OW];
+        assign relu[i*2+1] = ~(relu_en_r3[1] && sign[i]);
+        assign relu[i*2]   = relu_en_r3[1] && relu_en_r3[0] && sign[i];
+        always @(*) begin
+            case(relu[i*2 +: 2])
+                2'b00: begin
+                    s_data_w2[i*OW +: OW] = 0;
+                end
+                2'b01: begin
+                    s_data_w2[i*OW +: OW] = {{6{s_data_w1[i*OW+OW-1]}},s_data_w1[i*OW+6 +: (OW-6)]};
+                end
+                2'b10: begin
+                    s_data_w2[i*OW +: OW] = s_data_w1[i*OW +: OW];
+                end
+                default:begin
+                    s_data_w2[i*OW +: OW] = 0;
+                end
+            endcase
+        end
         
         //round
         always @(posedge clk or negedge rst_n) begin
@@ -139,7 +145,7 @@ generate
 
 endgenerate
 
-//另一个写法是把sel打2拍，用case sel得到小数点的位置
+
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         data_valid1 <= 0;
@@ -150,7 +156,7 @@ always @(posedge clk or negedge rst_n) begin
         relu_en_r2     <= 0;
         relu_en_r3     <= 0;
         shift_cnt1  <= 0;
-        shift_cnt2  <= 0;
+        shift_cnt2  <= 0;//另一个写法是把sel打2拍，用case sel得到小数点的位置
 
     end
     else begin

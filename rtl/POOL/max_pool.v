@@ -60,9 +60,17 @@ cmp2 #(.DW(DW),.DN(DN)) i_cmp2(
    .rst_n(rst_n)
 );
 
+always @(posedge clk or negedge rst_n) begin
+    if(!rst_n)
+        cmp_tmp_a[63] <= 0;
+    else
+        cmp_tmp_a[63] <= cmp_tmp_a[63];
+    
+end
+
 genvar j ;
 generate
-    for (j=0 ;j<64 ;j=j+1 ) begin
+    for (j=0 ;j<63 ;j=j+1 ) begin
         always @(posedge clk or negedge rst_n) begin
             if(!rst_n)
                 cmp_tmp_a[j] <= 0;
