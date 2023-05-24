@@ -1,10 +1,13 @@
-module crdma #(parameter DW=64,
+module crdma #(parameter DW=8,
+                         DW0=16,
+                         DN=8,
                          IW=36,
                          IN = 3     ,
+                         IFW= 4,
                          IRW = 30   ,
                          IPW = IN*IRW ,
                          AW= 14,
-                         ID = 4'h0 
+                         ID = 1'b0
 ) (
     //input [IW-1 : 0]  inst_m_data,
     //input             inst_m_valid,
@@ -14,23 +17,37 @@ module crdma #(parameter DW=64,
     output            inst_s_valid,
     input             inst_s_ready,
 
-    output [AW-1:0]   ifm_addr,
-    output            ifm_addr_first,
-    output            ifm_addr_last,
-    output            ifm_addr_valid,
-    input             ifm_addr_ready,
-    
-    input [DW-1 : 0]  crdma_m_data,
-    input             crdma_m_first,
-    input             crdma_m_last,
-    input             crdma_m_valid,
-    output            crdma_m_ready,
+    output [AW-1:0]   ifm_addr0,
+    output            ifm_addr_first0,
+    output            ifm_addr_last0,
+    output            ifm_addr_valid0,
+    input             ifm_addr_ready0,
 
-    output [DW-1 : 0] crdma_s_data,
+    output [AW-1:0]   ifm_addr1,
+    output            ifm_addr_first1,
+    output            ifm_addr_last1,
+    output            ifm_addr_valid1,
+    input             ifm_addr_ready1,
+    
+    input [DN*DW-1 : 0]  crdma_m_data0,
+    input             crdma_m_first0,
+    input             crdma_m_last0,
+    input             crdma_m_valid0,
+    output            crdma_m_ready0,
+
+    input [DW0-1 : 0]  crdma_m_data1,
+    input             crdma_m_first1,
+    input             crdma_m_last1,
+    input             crdma_m_valid1,
+    output            crdma_m_ready1,
+
+    output [DN*DW-1 : 0] crdma_s_data,
     output            crdma_s_first,
     output            crdma_s_last,
     output            crdma_s_valid,
     input             crdma_s_ready,
+
+    output [50 : 0]   info_bus,
 
     input clk,
     input rst_n
@@ -86,13 +103,14 @@ axi_frs #(.DW(IPW)) i_axi_frs_local_inst(
 );
 
 //local_inst unpack
-wire [4:0]    r_info;
-wire [AW-1:0] dma_base;
-wire [6:0]    dma_dim0_size;
-wire          dma_dim0_step;
-wire [4:0]    dma_dim1_size;
-wire [6:0]    dma_dim1_step;
-wire [15:0]   dma_c;
+wire [IFW-1:0] m_rinfo;
+wire [IFW-1:0] dma_r_info;
+wire [AW-1:0]  dma_base;
+wire [6:0]     dma_dim0_size;
+wire           dma_dim0_step;
+wire [4:0]     dma_dim1_size;
+wire [6:0]     dma_dim1_step;
+
 
 wire [AW-1 : 0] addr;
 wire            addr_first;
@@ -102,28 +120,30 @@ wire            addr_ready;
 
 wire [8:0] infop1;//9
 wire [9:0] infop2;//10
-wire [26:0] infop3;//27
-wire [45:0] info_bus
+wire [28:0] infop3;//29
 
-assign r_info = s_local_inst[0*32+28 +: 4];
+assign dma_r_info = s_local_inst[0*32+26 +: IFW];
 assign dma_base = s_local_inst[0*32+11 +: AW];
 assign infop1 = s_local_inst[0*32+2 +: 9];
 
 assign {dma_dim0_size,dma_dim0_step,dma_dim1_size,dma_dim1_step} = s_local_inst[1*32+10 +: 20];
 assign infop2 = s_local_inst[1*32 +: 10];
-assign infop3 = s_local_inst[2*32+3 +: 27];
+assign infop3 = s_local_inst[2*32+1 +: 29];
+assign info_bus = {infop1,infop2,infop3,dma_r_info[2:0]};
 
 
-dma_dim2 #(.AW(AW),.IFW(0)) i_dma0(
+dma_dim2 #(.AW(AW),.IFW(IFW)) i_dma0(
     .base(dma_base),
     .dim0_size(dma_dim0_size),
     .dim0_step(dma_dim0_step),
     .dim1_size(dma_dim1_size),
     .dim1_step(dma_dim1_step),
+    .m_info(dma_r_info),
     .start_valid(s_start_valid),
     .start_ready(s_start_ready),
 
     .s_addr(addr),
+    .s_info(m_rinfo),
     .s_first(addr_first),
     .s_last(addr_last),
     .s_valid(addr_valid),
@@ -133,24 +153,18 @@ dma_dim2 #(.AW(AW),.IFW(0)) i_dma0(
     .rst_n(rst_n)
 );
 
-inter_face #(.AW(AW),.DW(DW)) i_if(
-    .m_addr(addr),
-    .m_addr_first(addr_first),
-    .m_addr_last(addr_last),
-    .m_addr_valid(addr_valid),
-    .m_addr_ready(addr_ready),
+rmux #(.DW0(16),.DW(8),.DN(8),.IFW(IFW),.AW(AW)) i_rmux(
+    .m_data0(crdma_m_data0),
+    .m_data_first0(crdma_m_first0),
+    .m_data_last0(crdma_m_last0),
+    .m_data_valid0(crdma_m_valid0),
+    .m_data_ready0(crdma_m_ready0),
 
-    .s_addr(ifm_addr),
-    .s_addr_first(ifm_addr_first),
-    .s_addr_last(ifm_addr_last),
-    .s_addr_valid(ifm_addr_valid),
-    .s_addr_ready(ifm_addr_ready),
-
-    .m_data(crdma_m_data),
-    .m_data_first(crdma_m_first),
-    .m_data_last(crdma_m_last),
-    .m_data_valid(crdma_m_valid),
-    .m_data_ready(crdma_m_ready),
+    .m_data1(crdma_m_data1),
+    .m_data_first1(crdma_m_first1),
+    .m_data_last1(crdma_m_last1),
+    .m_data_valid1(crdma_m_valid1),
+    .m_data_ready1(crdma_m_ready1),
 
     .s_data(crdma_s_data),
     .s_data_first(crdma_s_first),
@@ -158,9 +172,30 @@ inter_face #(.AW(AW),.DW(DW)) i_if(
     .s_data_valid(crdma_s_valid),
     .s_data_ready(crdma_s_ready),
 
+    .info(m_rinfo),
+
+    .m_addr(addr),
+    .m_addr_first(addr_first),
+    .m_addr_last(addr_last),
+    .m_addr_valid(addr_valid),
+    .m_addr_ready(addr_ready),
+
+    .s_addr0(ifm_addr0),
+    .s_addr_first0(ifm_addr_first0),
+    .s_addr_last0(ifm_addr_last0),
+    .s_addr_valid0(ifm_addr_valid0),
+    .s_addr_ready0(ifm_addr_ready0),
+
+    .s_addr1(ifm_addr1),
+    .s_addr_first1(ifm_addr_first1),
+    .s_addr_last1(ifm_addr_last1),
+    .s_addr_valid1(ifm_addr_valid1),
+    .s_addr_ready1(ifm_addr_ready1),
+
     .clk(clk),
     .rst_n(rst_n)
 );
+
 
 
     

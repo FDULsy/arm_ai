@@ -7,10 +7,11 @@ module mac #(parameter DW=8,WW=8,CW=19,ROW=8,COLUMN=6,OW=22
     input                      mac_m_valid,
     output                     mac_m_ready,
     input [COLUMN*WW-1 : 0]    w,
-    input [   COLUMN-1 : 0]    w_en,
+    input                      w_en,
     input [COLUMN*CW-1 : 0]    ci,
 
-    output [COLUMN*OW-1 : 0]   mac_s_data,
+    // output [COLUMN*OW-1 : 0]   mac_s_data,
+    output [COLUMN*CW-1 : 0]   mac_s_data,
     output                     mac_s_first,
     output                     mac_s_last,
     output                     mac_s_valid,
@@ -23,9 +24,9 @@ module mac #(parameter DW=8,WW=8,CW=19,ROW=8,COLUMN=6,OW=22
 //localparam EW = OW-CW;
 
 //wire [COLUMN*WW-1 : 0] w_pass [ROW-1 : 0];
-wire [   COLUMN-1 : 0] w_en_pass [ROW-1 : 0];
+wire [ROW-1 : 0] w_en_pass ;
 //reg  [COLUMN*WW-1 : 0] w_pass_r [ROW-2 : 0];
-reg  [   COLUMN-1 : 0] w_en_pass_r [ROW-2 : 0];
+reg  [ROW-2 : 0] w_en_pass_r ;
 
 wire [COLUMN*(CW)-1 : 0] co0;
 wire [COLUMN*(CW)-1 : 0] co1;
@@ -196,14 +197,15 @@ mac_row #(.DW(DW),.WW(WW),.CW(CW),.OW(CW),.COLUMN(COLUMN)) i_mac_row7(
     .rst_n(rst_n)
 );
 
-genvar j;
-generate
-    for (j =0 ;j<COLUMN ;j=j+1 ) begin
-        //assign mac_s_data[j*OW +: OW] = {3'b1,co7[j*CW +: CW]};
-        //输出y=yreal/2，所以后续bias也要/2
-        //assign mac_s_data[j*OW +: OW] = co7[j*CW+1 +: CW-1];
-        assign mac_s_data[j*OW +: OW] = {{4{co7[j*CW+CW-1]}},co7[j*CW +: CW]};
-    end
-endgenerate
+assign mac_s_data = co7;
+// genvar j;
+// generate
+//     for (j =0 ;j<COLUMN ;j=j+1 ) begin
+//         //assign mac_s_data[j*OW +: OW] = {3'b1,co7[j*CW +: CW]};
+//         //输出y=yreal/2，所以后续bias也要/2
+//         //assign mac_s_data[j*OW +: OW] = co7[j*CW+1 +: CW-1];
+//         assign mac_s_data[j*OW +: OW] = {{4{co7[j*CW+CW-1]}},co7[j*CW +: CW]};
+//     end
+// endgenerate
 
 endmodule

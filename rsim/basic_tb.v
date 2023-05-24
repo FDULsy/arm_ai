@@ -8,7 +8,7 @@ reg clk,rst_n;
 
 //=====例化=====
 
- (
+ i_instance(
 
     .clk(clk),
     .rst_n(rst_n)

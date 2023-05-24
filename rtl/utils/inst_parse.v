@@ -83,7 +83,7 @@ generate
             else if(inst_addr==i) 
                 local_inst_r[i] <= inst_din;
         end
-        assign local_inst[IPW*i +: IPW] = local_inst_r[i];
+        assign local_inst[IRW*i +: IRW] = local_inst_r[i];
     end
 endgenerate
 

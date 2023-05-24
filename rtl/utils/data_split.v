@@ -1,5 +1,5 @@
 module data_split #(
-    parameter DN=6,DW = 21,MWH=18,MWL=4
+    parameter DN=6,DW = 22,MWH=18,MWL=4
 ) (
     input  [DN*DW-1 : 0]   m_data,
 
