@@ -1,4 +1,4 @@
-module dma_dim2 #(parameter AW=14 ,IFW=0, SZW0=7, STW0=1, SZW1=5, STW1=7   //IFW:INFO wedth
+module dma_dim2 #(parameter AW=14 ,IFW=4, SZW0=7, STW0=1, SZW1=5, STW1=7   //IFW:INFO wedth
 ) (
     input [AW-1:0]    base,
     input [SZW0-1 : 0]  dim0_size,

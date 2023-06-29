@@ -1,5 +1,5 @@
 module rmux #(
-    parameter DW0=16,DW=8,DN=8,IFW=4,AW=14
+    parameter DW0=16,DW=8,DN=8,IFW=4,AW=13
 ) (
     input [DN*DW-1 : 0]  m_data0,//ram
     input                m_data_first0,
@@ -140,7 +140,7 @@ assign m_data_ready1 = mem_sel_r? s_data_ready : 0;
 
 genvar i;
 generate
-    for (i =0 ;i<DN ;i=i+1 ) begin
+    for (i =0 ;i<DN ;i=i+1 ) begin : a
         assign data_sel_e[i*DW +: DW] = channel_en[i] ? data_sel[i*DW +: DW] : 0;
     end
 endgenerate 

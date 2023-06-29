@@ -25,6 +25,13 @@ always @(posedge clk or negedge rst_n) begin
         valid_tmp <= 1'b1;
     else if(s_ready == 1'b1)
         valid_tmp <= 1'b0;
+end        
+
+always @(posedge clk or negedge rst_n) begin
+    if(!rst_n)
+        ready_tmp <= 0;
+    else 
+        ready_tmp <= s_ready;
 end
 
 always @(posedge clk or negedge rst_n) begin

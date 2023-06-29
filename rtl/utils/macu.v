@@ -1,54 +1,61 @@
-module macu #(
-    parameter DW =8,CW=16,OW=17
-) (
-    input signed [DW-1:0]        xi,
-    input signed [DW-1:0]        wi,
-    input signed [CW-1:0]        ci,
-    input                        w_en,
+module macu #(parameter DW = 8,
+                        CW=16,
+                        OW=16                   
+)(
+    input [DW-1:0]        xi,
+    input [DW-1:0]        wi,
+    input [CW-1:0]        ci,
+    input                 w_en,
  
-    output  [OW-1:0]        co,
+    output reg [OW-1 :0]     co,
     input clk,
-    input rst_n 
+    input rst_n
+);
+localparam SE =CW-16 ;
+
+wire [ 8 : 0] x,w;
+wire [17 : 0] p;
+reg  [CW-1 : 0] p_r;
+wire [CW-1 : 0] p_e;
+reg  [CW-1 : 0] ci_r; 
+wire [  CW : 0] co_w;
+assign x={xi[7],xi};
+assign w={wi[7],wi};
+
+mul9 i_mul (
+.a ( x ),
+.b ( w ),
+.p ( p ),
+.cea (1'b1 ),
+.ceb (w_en ),
+.cepd (1'b1 ),
+.clk (clk ),
+.rstan (rst_n ),
+.rstbn (rst_n ),
+.rstpdn (rst_n )
 );
 
-localparam EW = CW-2*DW;
-wire signed [15:0] p;
-reg [DW-1 : 0] xi_r,wi_r;
-reg  signed [CW-1:0] p_r;
-//reg  [CW-1:0] ci_r;
-reg [CW:0] co_r;
+assign p_e = {{SE{p[15]}},p[15:0]};
 
-
-always @(posedge clk or negedge rst_n) begin
-    if(!rst_n)
-        wi_r<=0;
-    else if(w_en)
-        wi_r<=wi;
-    else
-        wi_r<=wi_r;
-
-end
-
-assign p=xi_r*wi_r;
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
-        xi_r <=0;
         p_r <= 0;
-        //ci_r <=0;
+        ci_r<= 0;
     end
-    else begin  
-        xi_r <= xi;
-        p_r  <= {{EW{p[2*DW-1]}},p};
-        //ci_r <= ci;
+    else begin
+        p_r<=p_e;
+        ci_r<= ci;
     end
 end
 
+assign co_w= p_r+ci_r;
+
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
-        co_r <=0;
+        co<=0;
     else
-        co_r <=ci+p_r;
+        co<=co_w[OW-1 : 0];
 end
-assign co = co_r[OW-1:0];
-    
+
+
 endmodule

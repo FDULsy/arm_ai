@@ -2,11 +2,11 @@ module conv_top #(
     parameter AW=14,DW=8,DN=8,DW0=16,IW=36,OW=22,ROW=8,COLUMN=6
 ) (
     //ifm0
-    output [AW-1:0]   ifm_addr0,
-    output            ifm_addr_first0,
-    output            ifm_addr_last0,
-    output            ifm_addr_valid0,
-    input             ifm_addr_ready0,
+    output [AW-1:0]      ifm_addr0,
+    output               ifm_addr_first0,
+    output               ifm_addr_last0,
+    output               ifm_addr_valid0,
+    input                ifm_addr_ready0,
 
     input [DN*DW-1 : 0]  ifm_data0,
     input                ifm_first0,
@@ -16,27 +16,27 @@ module conv_top #(
     //===========
 
     //imf1
-    output [AW-1:0]   ifm_addr1,
-    output            ifm_addr_first1,
-    output            ifm_addr_last1,
-    output            ifm_addr_valid1,
-    input             ifm_addr_ready1,
+    output [AW-1:0]      ifm_addr1,
+    output               ifm_addr_first1,
+    output               ifm_addr_last1,
+    output               ifm_addr_valid1,
+    input                ifm_addr_ready1,
 
-    input [DW0-1 : 0] ifm_data1,
-    input             ifm_first1,
-    input             ifm_last1,
-    input             ifm_valid1,
-    output            ifm_ready1,
+    input [DW0-1 : 0]    ifm_data1,
+    input                ifm_first1,
+    input                ifm_last1,
+    input                ifm_valid1,
+    output               ifm_ready1,
     //===========
 
     //inst
-    output [IW-1 : 0] inst_s_data,
-    output            inst_s_valid,
-    input             inst_s_ready,
+    output [IW-1 : 0]    inst_s_data,
+    output               inst_s_valid,
+    input                inst_s_ready,
     //===========
 
     //info
-    output [50 : 0]   info_bus,
+    output [45 : 0]      info_bus,
     //===========
 
     //macout
@@ -53,6 +53,8 @@ module conv_top #(
     input rst_n
 );
 //============================================================================
+
+
 
 wire [DN*DW-1 : 0] crdma_data;
 wire               crdma_first;
@@ -80,6 +82,25 @@ wire [7:0] w0,w1,w2,w3,w4,w5;
 wire [47:0] w;
 
 
+// ifm1 i_ifm1(
+//     .addra(ifm_addr1),
+//     .dia(16'h0),
+//     .ocea(1'b0),
+//     .clka(clk),
+//     .wea(1'b1),
+//     .rsta(rst_n),
+//     .doa(ifm_data1)
+// );
+
+// ifmram i_ifmram(
+//     .addra(ifm_addr0),
+//     .dia(16'h0),
+//     .ocea(1'b0),
+//     .clka(clk),
+//     .wea(1'b1),
+//     .rsta(rst_n),
+//     .doa(ifm_data0)
+// );
 
 crdma #(.DW(8),.DW0(16),.DN(8),.IW(36),.IN(3),.IFW(4),.IRW(30),.IPW(120),.AW(14),.ID(1'b0)) i_crdma(
     .inst_s_data(inst_s_data),
@@ -123,7 +144,7 @@ crdma #(.DW(8),.DW0(16),.DN(8),.IW(36),.IN(3),.IFW(4),.IRW(30),.IPW(120),.AW(14)
 );
 
 assign w_data_n = info_bus[2:0];
-assign w_fc     = info_bus[4:3];
+assign w_fc     = info_bus[36:35];
 
 delay_chain #(.DW(64),.DN(8)) i_datain_delay(
     .xi(crdma_data),
@@ -133,7 +154,10 @@ delay_chain #(.DW(64),.DN(8)) i_datain_delay(
     .rst_n(rst_n)
 );
 
-weigntrom i_weifhtrom(
+
+
+
+weightrom i_weightrom(
     .i_last(crdma_last),
     .i_clk(clk),
     .i_rst_n(rst_n),
@@ -160,7 +184,7 @@ mac #(.DW(8),.WW(8),.CW(19),.ROW(8),.COLUMN(6),.OW(22)) i_mac(
 
     .w(w),
     .w_en(w_en),
-    .ci(0),
+    .ci(114'h0),
 
     .mac_s_data(mac_s_data),
     .mac_s_first(mac_s_first),
@@ -189,7 +213,7 @@ delay #(.DW(1),.DLT(7)) i_rdy_delay(
     .rst_n(rst_n)
 );
 
-delay_chain #(.DW(19*6),.DN(8)) i_dataout_delay(
+delay_chain #(.DW(19*6),.DN(6)) i_dataout_delay(
     .xi(mac_s_data),
     .xo(delay_data),
 
@@ -197,9 +221,10 @@ delay_chain #(.DW(19*6),.DN(8)) i_dataout_delay(
     .rst_n(rst_n)
 );
 
+
 genvar i;
 generate
-    for (i =0 ;i<DN ;i=i+1 ) begin
+    for (i =0 ;i<6 ;i=i+1 ) begin:x
         assign macd_s_data[i*OW +: OW] ={{3{delay_data[i*19+18]}},delay_data[i*19 +: 19]};
     end
 endgenerate

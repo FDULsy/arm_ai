@@ -47,7 +47,7 @@ module crdma #(parameter DW=8,
     output            crdma_s_valid,
     input             crdma_s_ready,
 
-    output [50 : 0]   info_bus,
+    output [45 : 0]   info_bus,
 
     input clk,
     input rst_n
@@ -63,7 +63,7 @@ wire [IPW-1:0] s_local_inst;
 wire m_start_valid,s_start_valid;
 wire m_start_ready,s_start_ready;
 
-inst_fetch i_inst_fetch(
+inst_fetch #(.IW(36),.AW(10)) i_inst_fetch(
     .instgen_s_data(inst_m_data),
     .instgen_s_valid(inst_m_valid),
     .instgen_s_ready(inst_m_ready),
@@ -118,17 +118,17 @@ wire            addr_last;
 wire            addr_valid;
 wire            addr_ready;
 
-wire [8:0] infop1;//9
-wire [9:0] infop2;//10
-wire [28:0] infop3;//29
+wire [8:0] infop1;//11 maxen1,poolw6,reluen2,fc2
+wire [9:0] infop2;//9  scale_num9
+wire [28:0] infop3;//23
 
-assign dma_r_info = s_local_inst[0*32+26 +: IFW];
-assign dma_base = s_local_inst[0*32+11 +: AW];
-assign infop1 = s_local_inst[0*32+2 +: 9];
+assign dma_r_info = s_local_inst[0*IRW+26 +: IFW];
+assign dma_base = s_local_inst[0*IRW+11 +: AW];
+assign infop1 = s_local_inst[0*IRW+7 +: 23];
 
 assign {dma_dim0_size,dma_dim0_step,dma_dim1_size,dma_dim1_step} = s_local_inst[1*32+10 +: 20];
-assign infop2 = s_local_inst[1*32 +: 10];
-assign infop3 = s_local_inst[2*32+1 +: 29];
+assign infop2 = s_local_inst[1*IRW+1 +: 9];
+assign infop3 = s_local_inst[2*IRW+1 +: 29];
 assign info_bus = {infop1,infop2,infop3,dma_r_info[2:0]};
 
 

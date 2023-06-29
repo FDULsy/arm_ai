@@ -9,8 +9,8 @@ module scale #(
     input [4 : 0]         n,
     input [1 : 0]         relu_en,//0x:不relu  10:relu  11:leaky_relu 
 
-    output [DN*OW-1 : 0] s_data,
-    output               s_valid,
+    output [DN*OW-1 : 0]  s_data,
+    output                s_valid,
 
     input clk,
     input rst_n
@@ -53,8 +53,8 @@ generate
     for ( i=0 ;i<DN ;i=i+1 ) begin
         //位宽在模型定下来后需要修改
         assign sel[i*3+2] = (m_data1[i*DW+16 +: 6] == {6{m_data1[i*DW+DW-1]}}) ;
-        assign sel[i*3+1] = (m_data1[i*DW+13 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
-        assign sel[i*3  ] = (m_data1[i*DW+11 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
+        assign sel[i*3+1] = (m_data1[i*DW+14 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
+        assign sel[i*3  ] = (m_data1[i*DW+12 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
         always @(*) begin
             case(sel[i*2 +: 3])
 
@@ -67,12 +67,12 @@ generate
                             shift_cnt[i*SFTW +: SFTW] = n-8;
                         end 
                 3'b110: begin
-                            mul_1[i*MULW +: MULW] = m_data1[i*DW+5 +: 9] ;
-                            shift_cnt[i*SFTW +: SFTW] = n-5;
+                            mul_1[i*MULW +: MULW] = m_data1[i*DW+6 +: 9] ;
+                            shift_cnt[i*SFTW +: SFTW] = n-6;
                         end
                 3'b111: begin 
-                            mul_1[i*MULW +: MULW] = m_data1[i*DW+3 +: 9] ;
-                            shift_cnt[i*SFTW +: SFTW] = n-3;
+                            mul_1[i*MULW +: MULW] = m_data1[i*DW+4 +: 9] ;
+                            shift_cnt[i*SFTW +: SFTW] = n-4;
 
                         end
                 default:begin
@@ -100,7 +100,7 @@ generate
         .clk (clk ),
         .rstan (rst_n ),
         .rstbn (rst_n ),
-        .rstdn (rst_n )
+        .rstpdn (rst_n )
         );
 
 

@@ -15,11 +15,11 @@ generate
     for(i=0;i<DLT;i=i+1) begin:delay_gen
         always @(posedge clk or negedge rst_n) begin
             if(!rst_n)
-                x_r[i] <= #0.1 0;
+                x_r[i] <=  0;
             else if(i==0)
-                x_r[0] <=#0.1 xi;
+                x_r[0] <= xi;
             else
-                x_r[i] <=#0.1  x_r[i-1];
+                x_r[i] <=  x_r[i-1];
         end
     end
 endgenerate

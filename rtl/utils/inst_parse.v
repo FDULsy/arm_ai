@@ -44,7 +44,7 @@ assign inst_start_en=(inst_id==ID) && inst_run;
 
 assign inst_s0_data = inst_m_data;
 assign inst_s0_valid = inst_m_valid && (inst_id!=ID);
-axi_rs #(.DW(32)) i_axi_rs(
+axi_rs #(.DW(IW)) i_axi_rs(
     .m_data(inst_s0_data),
     .m_valid(inst_s0_valid),
     .m_ready(inst_s0_ready),
