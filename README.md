@@ -1,3 +1,3 @@
 # arm_ai
 
-is still in progess
+not finished yet!
