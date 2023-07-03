@@ -5,10 +5,11 @@ module conv_acc #(
     input [DW*DN-1 : 0]       m_data1,
     input                     m_valid1,
     input [DW*DN-1 : 0]       m_data2,//bias
+    input                     m_valid2,
     input [DW*DN-1 : 0]       m_data3,//acc
+    input                     m_valid3,
     output                    m_ready,
 
-    //wdma产生，还没写
     input [AW-1 : 0]          base2,
     input [9:0]               size,
     input                     start,
@@ -63,8 +64,8 @@ wire s_valid_w;
 wire data_valid;
 
 reg m_valid2;
-reg m_valid2_r;
 
+wire m_valid_sel;
 wire [DW*DN-1 : 0] m_data_2;
 wire [DW*DN-1 : 0] data1;
 wire [DW*DN-1 : 0] data2;
@@ -72,8 +73,9 @@ wire [DW*DN-1 : 0] sum;
 reg  [DW*DN-1 : 0] sum_r;
 
 assign m_data_2 = first_k_r2? m_data2 : m_data3;
-// assign m_data_valid = m_valid1 && m_valid2_r ;
-assign m_data_valid = m_valid1;
+assign m_valid_sel =  first_k_r2? m_valid2 && m_valid3 ;
+assign m_valid_sel = m_valid1 && m_valid_sel;
+//assign m_data_valid = m_valid1;
 
 assign m_data_bus={m_data1,m_data_2};
 

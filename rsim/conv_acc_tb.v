@@ -116,8 +116,13 @@ initial begin
     #10 m_data1=11;
     #10 m_data1=12;
     #10 m_data1=13;
+    #10 m_valid1=0;first_k=0;
+    #20 size=4;start=1;last_k=1;base2=100;m_data1=500;m_data2=200;m_valid1=1;
+    #10 start=0;m_data1=20;m_data2=11;
+    #10 m_data1=21;m_data2=12;
+    #10 m_data1=22;m_data2=13;
+    #10 m_data1=23;m_data2=14;
     #10 m_valid1=0;
-
 
     //
     
