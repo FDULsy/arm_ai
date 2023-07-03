@@ -1,11 +1,12 @@
 //根据M的数据大小，可能直接给定固定的n作为localparam
 module scale #(
-    parameter DW=22,DN=6,MULW=9,OW=8
+    parameter DW=22,DN=6,MULW=9,OW=8,CW1=14,CW2=7
 ) (
     input [DN*DW-1 : 0]   m_data1,
     input                 m_valid1,
     input [DN*MULW-1 : 0] m_data2,
     //input                 m_valid2,
+    input [CW1-1 : 0]     m_ctrl,
     input [4 : 0]         n,
     input [1 : 0]         relu_en,//0x:不relu  10:relu  11:leaky_relu 
 
