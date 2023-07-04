@@ -1,5 +1,6 @@
+
 module conv_acc #(
-    parameter AW=10,DW=22,DN=6,CW1=19,CW2=14
+    parameter AW=10,DW=22,DN=6,CW1=28,CW2=23
 ) (
     //data可能需要打拍
     input [DW*DN-1 : 0]       m_data1,
@@ -64,8 +65,8 @@ reg [AW-1 : 0] addr_r;
 //reg [3:0] cnt;
 reg [10:0] residue;
 
-wire [2*DW*DN+15 :0] m_data_bus;
-wire [2*DW*DN+15 :0] s_data_bus;
+wire [2*DW*DN+24 :0] m_data_bus;
+wire [2*DW*DN+24 :0] s_data_bus;
 wire       m_data_valid;
 //wire       s_data_valid;
 wire m_valid_w;
@@ -129,7 +130,7 @@ endgenerate
 
 assign m_data_bus={m_data1_sft,m_data2_sft,ctrl2,first_k,last_k};
 
-axi_frs #(.DW(2*DW*DN+16)) i_axi_frs_data(
+axi_frs #(.DW(2*DW*DN+25)) i_axi_frs_data(
     .m_data(m_data_bus),
     .m_valid(m_valid1),
     .m_ready(m_ready),
