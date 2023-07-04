@@ -1,5 +1,4 @@
-module acc_shift #(parameter
-    DW=22
+module acc_shift #(parameter DW=22
 ) (
     input  signed     [DW-1 : 0]      m_data1     ,
     input  signed     [DW-1 : 0]      m_data2     ,

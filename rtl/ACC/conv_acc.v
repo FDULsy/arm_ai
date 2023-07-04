@@ -18,7 +18,7 @@ module conv_acc #(
     input   [AW-1 : 0]        base,
     input   [9:0]             size,//size=3表示累加4个数
     
-    output  [CW2-1 : 0]       s_ctrl;
+    output  [CW2-1 : 0]       s_ctrl,
     // input                     first_k,//3*3卷积的第一个，  为1输入选择bias 通道，为0输入选择acc通道
     // input                     last_k ,//3*3卷积的最后一个，为1输出选择scale通道，为0输出选择acc通道
    //============
@@ -43,8 +43,6 @@ module conv_acc #(
 wire           first_k_r;
 wire           last_k_r;
 
-wire [AW-1 : 0]         base;
-wire [9:0]              size;
 
 wire                    first_k;
 wire                    last_k ;
@@ -56,7 +54,7 @@ reg  [CW2-1 : 0] s_ctrl_r;
 
 assign first_k = m_ctrl[0];
 assign last_k  = m_ctrl[1];
-assign shift_n = m_ctrl[4:2]
+assign shift_n = m_ctrl[4:2];
 assign ctrl2=m_ctrl[5 +: 14];
 
 
@@ -116,14 +114,14 @@ assign m_data_2 = first_k? m_data2 : m_data3;
 
 genvar j;
 generate
-    for(j=0;j<DN;j=j+1) begin:
+    for(j=0;j<DN;j=j+1) begin: shift
         acc_shift #(.DW(DW)) i_SHIFT(
             .m_data1  (m_data1[DW*j +: DW]),
             .m_data2  (m_data_2[DW*j +: DW]),
             .m_shift_n(shift_n),
             .s_data1  (m_data1_sft[DW*j +: DW]),
             .s_data2  (m_data2_sft[DW*j +: DW])
-);
+        );
     end
 endgenerate
 
