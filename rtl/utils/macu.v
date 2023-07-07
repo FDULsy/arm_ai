@@ -1,61 +1,83 @@
 module macu #(parameter DW = 8,
-                        CW=16,
-                        OW=16                   
+                        OW=19                   
 )(
-    input [DW-1:0]        xi,
-    input [DW-1:0]        wi,
-    input [CW-1:0]        ci,
-    input                 w_en,
+    input [DW-1:0]          xi          , 
+    input [DW-1:0]          wi          ,
+    input                   w_en   ,
+    input [OW-1:0]          ci          , 
  
-    output reg [OW-1 :0]     co,
+    output reg [OW-1 :0]    co          ,
+
     input clk,
     input rst_n
 );
-localparam SE =CW-16 ;
+localparam SE =OW-18 ;
+
+reg [DW-1 : 0] s_x;
+reg  [DW-1 : 0] s_w;
 
 wire [ 8 : 0] x,w;
 wire [17 : 0] p;
-reg  [CW-1 : 0] p_r;
-wire [CW-1 : 0] p_e;
-reg  [CW-1 : 0] ci_r; 
-wire [  CW : 0] co_w;
-assign x={xi[7],xi};
-assign w={wi[7],wi};
+wire [OW-1 : 0] p_e;
+
+reg [OW-1   : 0] s_p;
+reg [OW-1   : 0] s_c;
+
+wire [  OW : 0] co_w;
+
+
+always @(posedge clk or negedge rst_n) begin
+    if(!rst_n)
+        s_w <= 0;
+    else if(w_en)
+        s_w <= wi;
+    else
+        s_w <= s_w;
+end
+
+always @(posedge clk or negedge rst_n) begin
+    if(!rst_n)
+        s_x <= 0;
+    else
+        s_x <= xi;
+end
+
+assign x={s_x[7],s_x};
+assign w={s_w[7],s_w};
 
 mul9 i_mul (
 .a ( x ),
 .b ( w ),
-.p ( p ),
-.cea (1'b1 ),
-.ceb (w_en ),
-.cepd (1'b1 ),
-.clk (clk ),
-.rstan (rst_n ),
-.rstbn (rst_n ),
-.rstpdn (rst_n )
+.p ( p )
+//.cea (1'b1 ),
+//.ceb (w_en ),
+//.cepd (1'b1 ),
+//.clk (clk ),
+//.rstan (rst_n ),
+//.rstbn (rst_n ),
+//.rstpdn (rst_n )
 );
 
 assign p_e = {{SE{p[15]}},p[15:0]};
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
-        p_r <= 0;
-        ci_r<= 0;
+        s_p <= 0;
+        s_c <= 0;
     end
     else begin
-        p_r<=p_e;
-        ci_r<= ci;
-    end
+        s_p <= p_e;
+        s_c <= ci;
+    end    
 end
 
-assign co_w= p_r+ci_r;
+assign co_w= s_p+s_c;
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
-        co<=0;
+        co <= 0;
     else
-        co<=co_w[OW-1 : 0];
+        co <= co_w;
 end
-
 
 endmodule

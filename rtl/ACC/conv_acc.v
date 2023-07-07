@@ -12,7 +12,7 @@ module conv_acc #(
     //input                     m_valid3,
     output                    m_ready,
 
-    input                     start,//first提前2拍
+    input                     start,//first、base、size提前2拍
 
     input   [CW1-1 : 0]       m_ctrl,
     input   [AW-1 : 0]        base,
