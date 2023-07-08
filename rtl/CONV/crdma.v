@@ -13,50 +13,50 @@ module crdma #(parameter DW=8,
     //input             inst_m_valid,
     //output            inst_m_ready,
 
-    output [IW-1 : 0] inst_s_data,
-    output            inst_s_valid,
-    input             inst_s_ready,
+    output [IW-1 : 0]       inst_s_data       ,
+    output                  inst_s_valid      ,
+    input                   inst_s_ready      ,   
 
-    output [AW-1:0]   ifm_addr0,
-    output            ifm_addr_first0,
-    output            ifm_addr_last0,
-    output            ifm_addr_valid0,
-    input             ifm_addr_ready0,
+    output [AW-1:0]         ifm_addr0         ,
+    output                  ifm_addr_first0   ,
+    output                  ifm_addr_last0    ,
+    output                  ifm_addr_valid0   ,
+    input                   ifm_addr_ready0   ,  
 
-    output [AW-1:0]   ifm_addr1,
-    output            ifm_addr_first1,
-    output            ifm_addr_last1,
-    output            ifm_addr_valid1,
-    input             ifm_addr_ready1,
-    
-    input [DN*DW-1 : 0]  crdma_m_data0,
-    input             crdma_m_first0,
-    input             crdma_m_last0,
-    input             crdma_m_valid0,
-    output            crdma_m_ready0,
+    output [AW-1:0]         ifm_addr1         ,
+    output                  ifm_addr_first1   ,
+    output                  ifm_addr_last1    ,
+    output                  ifm_addr_valid1   ,
+    input                   ifm_addr_ready1   ,
+    input [DN*DW-1 : 0]     crdma_m_data0     ,
+    input                   crdma_m_first0    ,
+    input                   crdma_m_last0     ,
+    input                   crdma_m_valid0    ,
+    output                  crdma_m_ready0    ,
 
-    input [DW0-1 : 0]  crdma_m_data1,
-    input             crdma_m_first1,
-    input             crdma_m_last1,
-    input             crdma_m_valid1,
-    output            crdma_m_ready1,
+    input [DW0-1 : 0]       crdma_m_data1     ,
+    input                   crdma_m_first1    ,
+    input                   crdma_m_last1     ,
+    input                   crdma_m_valid1    ,
+    output                  crdma_m_ready1    ,   
 
-    output [DN*DW-1 : 0] crdma_s_data,
-    output            crdma_s_first,
-    output            crdma_s_last,
-    output            crdma_s_valid,
-    input             crdma_s_ready,
+    output [DN*DW-1 : 0]    crdma_s_data      ,
+    output                  crdma_s_first     ,
+    output                  crdma_s_last      ,
+    output                  crdma_s_valid     ,
+    output                  crdma_s_first_pre ,
+    //input                 crdma_s_ready     ,
 
-    output [45 : 0]   info_bus,
+    output [45 : 0]         info_bus          ,
 
-    input clk,
-    input rst_n
+    input                   clk               ,
+    input                   rst_n
 );
 
 wire [IW-1:0] inst_m_data;
 wire inst_m_valid;
 wire inst_m_ready;
- 
+
 wire [IPW-1:0] m_local_inst;
 wire [IPW-1:0] s_local_inst;
 //wire [1:0] start_prior;
@@ -153,6 +153,8 @@ dma_dim2 #(.AW(AW),.IFW(IFW)) i_dma0(
     .rst_n(rst_n)
 );
 
+assign crdma_s_first_pre = addr_first;
+
 rmux #(.DW0(16),.DW(8),.DN(8),.IFW(IFW),.AW(AW)) i_rmux(
     .m_data0(crdma_m_data0),
     .m_data_first0(crdma_m_first0),
@@ -170,7 +172,7 @@ rmux #(.DW0(16),.DW(8),.DN(8),.IFW(IFW),.AW(AW)) i_rmux(
     .s_data_first(crdma_s_first),
     .s_data_last(crdma_s_last),
     .s_data_valid(crdma_s_valid),
-    .s_data_ready(crdma_s_ready),
+    .s_data_ready(1'b1),
 
     .info(m_rinfo),
 

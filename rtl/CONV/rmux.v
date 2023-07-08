@@ -1,50 +1,51 @@
 module rmux #(
     parameter DW0=16,DW=8,DN=8,IFW=4,AW=13
 ) (
-    input [DN*DW-1 : 0]  m_data0,//ram
-    input                m_data_first0,
-    input                m_data_last0,
-    input                m_data_valid0,
-    output               m_data_ready0,
+    input [DN*DW-1 : 0]     m_data0         ,//ram
+    input                   m_data_first0   ,
+    input                   m_data_last0    ,
+    input                   m_data_valid0   ,
+    output                  m_data_ready0   ,
 
-    input [DW0-1 : 0] m_data1,//sdram pic
-    input                m_data_first1,
-    input                m_data_last1,
-    input                m_data_valid1,
-    output               m_data_ready1,
+    input [DW0-1 : 0]       m_data1         ,//sdram pic
+    input                   m_data_first1   ,
+    input                   m_data_last1    ,
+    input                   m_data_valid1   ,
+    output                  m_data_ready1   ,  
 
-    output [DN*DW-1 : 0] s_data,
-    output            s_data_first,
-    output            s_data_last,
-    output            s_data_valid,
-    input             s_data_ready,
+    output [DN*DW-1 : 0]    s_data          ,
+    output                  s_data_first    ,
+    output                  s_data_last     ,
+    output                  s_data_valid    ,
+    input                   s_data_ready    ,   
+    //output                  s_data_first_pre,
 
-    input [IFW-1 : 0]  info,
+    input [IFW-1 : 0]       info            ,   
 
-    input [AW-1 : 0]   m_addr,
-    input              m_addr_first,
-    input              m_addr_last,
-    input              m_addr_valid,
-    output             m_addr_ready,
+    input [AW-1 : 0]        m_addr          ,
+    input                   m_addr_first    ,
+    input                   m_addr_last     ,
+    input                   m_addr_valid    ,
+    output                  m_addr_ready    ,
 
-    output [AW-1 : 0]  s_addr0,//ram
-    output             s_addr_first0,
-    output             s_addr_last0,
-    output             s_addr_valid0,
-    input              s_addr_ready0,
+    output [AW-1 : 0]       s_addr0         ,//ram
+    output                  s_addr_first0   ,
+    output                  s_addr_last0    ,
+    output                  s_addr_valid0   ,
+    input                   s_addr_ready0   ,
 
-    output [AW-1 : 0]  s_addr1,//sdram
-    output             s_addr_first1,
-    output             s_addr_last1,
-    output             s_addr_valid1,
-    input              s_addr_ready1,
+    output [AW-1 : 0]       s_addr1         ,//sdram
+    output                  s_addr_first1   ,
+    output                  s_addr_last1    ,
+    output                  s_addr_valid1   ,
+    input                   s_addr_ready1   ,
 
-    input clk,
-    input rst_n
+    input                   clk             ,
+    input                   rst_n
 );
 
-wire mem_sel;
-reg mem_sel_r;
+wire    mem_sel;
+reg     mem_sel_r;
 wire [2:0] channel;
 reg [DN-1:0] channel_en;
 
@@ -67,6 +68,10 @@ wire            first_sel;
 wire            last_sel;
 wire            valid_sel;
 wire            ready_sel;
+
+
+assign mem_sel = info[3];
+assign channel = info[2:0];
 
 assign m_addr_valid0 = ~mem_sel && m_addr_valid;
 assign m_addr_valid1 = mem_sel && m_addr_valid;
@@ -102,9 +107,6 @@ assign {s_addr1,s_addr_first1,s_addr_last1} = s_addr_bus1;
 assign m_addr_ready = mem_sel? s_addr_ready1 : s_addr_ready0;
 
 
-
-assign mem_sel = info[3];
-assign channel = info[2:0];
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)

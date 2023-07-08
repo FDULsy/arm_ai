@@ -1,21 +1,21 @@
 module dma_dim2 #(parameter AW=14 ,IFW=4, SZW0=7, STW0=1, SZW1=5, STW1=7   //IFW:INFO wedth
 ) (
-    input [AW-1:0]    base,
+    input [AW-1:0]      base,
     input [SZW0-1 : 0]  dim0_size,
     input [STW0-1 : 0]  dim0_step,
     input [SZW1-1 : 0]  dim1_size,
     input [STW1-1 : 0]  dim1_step,
     input [IFW-1 : 0]   m_info,
-    input        start_valid,
-    output       start_ready,
+    input               start_valid,
+    output              start_ready,
 
-    output [AW-1:0]    s_addr,
-    output [IFW-1 : 0] s_info,
-    output             s_first,
-    output             s_last,
-    output             s_valid,
-    input              s_ready,
-    
+    output [AW-1:0]     s_addr,
+    output [IFW-1 : 0]  s_info,
+    output              s_first,
+    output              s_last,
+    output              s_valid,
+    input               s_ready,
+        
     input  clk,
     input rst_n
 );
