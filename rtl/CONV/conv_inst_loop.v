@@ -15,6 +15,7 @@ module conv_inst_loop #(
 );
 
 wire fc;
+reg [IRW*IN-1 : 0] inst_r;
 assign fc= m_inst[0];
 wire [AW-1 : 0] inst_base;
 wire [   6 : 0] inst_dim0_size;
@@ -23,6 +24,15 @@ wire [AW-1 : 0] next_base;
 reg  [   6 : 0] base_add1 ;
 reg  [   6 : 0] base_add2 ;
 
+
+always @(posedge clk or negedge rst_n) begin
+    if(!rst_n)
+        inst_r <= 0;
+    else if(m_valid && m_ready)
+        inst_r <= m_inst;
+    else
+        inst_r <= inst_r;
+end
 
 always @(*) begin
     case(cnt)
