@@ -1,4 +1,4 @@
-module mac_row #(parameter DW=8,OW=19,COLUMN=6
+module mac_row #(parameter DW=8,OW=19,COLUMN=7
 ) (
     input  [      DW-1 : 0]     xi,
     input  [  COLUMN*DW-1 : 0]  wi,
@@ -24,7 +24,7 @@ genvar i;
 //     .rst_n(rst_n)
 // );
 generate
-    for (i=0;i<6;i=i+1) begin: mac_row_gen
+    for (i=0;i<COLUMN;i=i+1) begin: mac_row_gen
         macu #(.DW(DW),.OW(OW)) i_macu(
             .xi(xi),
             .wi(wi[i*DW +: DW]),

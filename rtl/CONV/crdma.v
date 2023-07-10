@@ -89,18 +89,18 @@ inst_parse #(.IW(IW),.IN(IN),.IPW(IPW),.ID(ID)) i_inst_parse(
     .rst_n(rst_n)
 );
 
-axi_frs #(.DW(IPW)) i_axi_frs_local_inst(
-    .m_data(m_local_inst),
+conv_inst_loop #(.IRW(IRW),.IN(IN),AW(AW)) i_inst_loop(
+    .m_inst(m_local_inst),
     .m_valid(m_start_valid),
     .m_ready(m_start_ready),
 
-    .s_data(s_local_inst),
+    .s_inst(s_local_inst),
     .s_valid(s_start_valid),
     .s_ready(s_start_ready),
-
     .clk(clk),
     .rst_n(rst_n)
 );
+
 
 //local_inst unpack
 wire [IFW-1:0] m_rinfo;
