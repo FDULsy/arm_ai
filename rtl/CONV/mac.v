@@ -1,18 +1,18 @@
 //first last valid信号没写
-module mac #(parameter DW=8,CW=19,ROW=7,COLUMN=7,OW=22
+module mac #(parameter DW=8,CW=19,ROW=7,COLUMN=7,OW=26
 ) (
     input [ROW*DW-1     : 0]        mac_m_data  ,
     input [COLUMN*DW-1  : 0]        w           ,
     input [ROW-1        : 0]        w_en        ,
     input [COLUMN*CW-1  : 0]        ci          ,
 
-    output [COLUMN*CW-1 : 0]        mac_s_data  ,     
+    output [COLUMN*OW-1 : 0]        mac_s_data  ,     
 
     input clk,
     input rst_n
 );
 
-//localparam EW = OW-CW;
+localparam EW = OW-CW;
 
 wire [COLUMN*(CW)-1 : 0] co0;
 wire [COLUMN*(CW)-1 : 0] co1;
@@ -118,8 +118,12 @@ mac_row #(.DW(DW),.OW(CW),.COLUMN(COLUMN)) i_mac_row6(
 //     .clk(clk),
 //     .rst_n(rst_n)
 // );
-
-assign mac_s_data = co6;
+genvar i;
+generate
+    for (i = 0;i<COLUMN ;i=i+1 ) begin
+        assign mac_s_data[i*OW +: OW] = {EW{co6[(i+1)*CW-1]},co6[i*CW +: CW]};
+    end
+endgenerate
 
 
 endmodule

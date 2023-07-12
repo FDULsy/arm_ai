@@ -7,14 +7,16 @@ module acc_shift #(parameter DW=22
     output signed     [DW-1 : 0]      s_data2     
 );
 
-reg  signed   [DW-1 : 0]   d1_r,d2_r   ;
-
+reg  signed   [DW : 0]   d1_r,d2_r   ;
+wire lsb1;
+wire lsb2;
 
 always@(*) begin
-    d1_r <= m_data1 >>> m_shift_n;
-    d2_r <= m_data2 >>> m_shift_n;
+    d1_r <= {m_data1,1'b0} >>> m_shift_n;
+    d2_r <= {m_data2,1'b0} >>> m_shift_n;
 end
-
+assign lsb1=d1_r[0] || d1_r[1];
+assign lsb2=d2_r[0] || d2_r[1];
 // always@(*) begin
 //     case(m_shift_n):
 //         0:begin
@@ -52,7 +54,7 @@ end
 //     endcase
 // end   
 
-assign s_data1 = d1_r;
-assign s_data2 = d2_r;
+assign s_data1 = {d1_r[DW : 2],lsb1};
+assign s_data2 = {d2_r[DW : 2],lsb2};
 
 endmodule

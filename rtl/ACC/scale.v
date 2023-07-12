@@ -13,7 +13,7 @@
 
 //根据M的数据大小，可能直接给定固定的n作为localparam
 module scale #(
-    parameter DW=22,DN=6,MULW=9,OW=8,CW1=23,CW2=7
+    parameter DW=26,DN=7,MULW=13,OW=8,CW1=24,CW2=8
 ) (
     input  [DN*DW-1 : 0]    m_data1,
     input                   m_valid1,
@@ -77,7 +77,7 @@ reg  [DN*OW-1 : 0] s_data_r;
 assign m_data2 = m_ctrl[0 +: MULW]  ;
 assign n       = m_ctrl[MULW +: 5]  ;
 assign relu_en = m_ctrl[MULW+5 +: 2];
-assign ctrl2   = m_ctrl[MULW+7 +: 7];
+assign ctrl2   = m_ctrl[MULW+7 +: 8];
 
 //sel:0x:取[22:14]  10：高9位前几为0，后几位不为0，取[13+SP -：9]  11：高9位全为0，取[13 -: 9]([13:5])
 assign mul_2 = {DN{m_data2}};
@@ -86,56 +86,56 @@ genvar i;
 generate
     for ( i=0 ;i<DN ;i=i+1 ) begin
         //位宽在模型定下来后需要修改
-        assign sel[i*3+2] = (m_data1[i*DW+16 +: 6] == {6{m_data1[i*DW+DW-1]}}) ;
-        assign sel[i*3+1] = (m_data1[i*DW+14 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
-        assign sel[i*3  ] = (m_data1[i*DW+12 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
+        assign sel[i*3+2] = (m_data1[i*DW+20 +: 6] == {6{m_data1[i*DW+DW-1]}}) ;
+        assign sel[i*3+1] = (m_data1[i*DW+18 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
+        assign sel[i*3  ] = (m_data1[i*DW+16 +: 2] == {2{m_data1[i*DW+DW-1]}}) ;
         always @(*) begin
             case(sel[i*2 +: 3])
 
                 3'b100: begin
-                            mul_1[i*MULW +: MULW] = m_data1[i*DW+8 +: 9] ;
-                            shift_cnt[i*SFTW +: SFTW] = n-8;
+                            mul_1[i*MULW +: MULW] = m_data1[i*DW+9 +: 12] ;
+                            shift_cnt[i*SFTW +: SFTW] = n-9;
                         end 
                 3'b101: begin
-                            mul_1[i*MULW +: MULW] = m_data1[i*DW+8 +: 9] ;
-                            shift_cnt[i*SFTW +: SFTW] = n-8;
+                            mul_1[i*MULW +: MULW] = m_data1[i*DW+9 +: 12] ;
+                            shift_cnt[i*SFTW +: SFTW] = n-9;
                         end 
                 3'b110: begin
-                            mul_1[i*MULW +: MULW] = m_data1[i*DW+6 +: 9] ;
-                            shift_cnt[i*SFTW +: SFTW] = n-6;
+                            mul_1[i*MULW +: MULW] = m_data1[i*DW+7 +: 12] ;
+                            shift_cnt[i*SFTW +: SFTW] = n-7;
                         end
                 3'b111: begin 
-                            mul_1[i*MULW +: MULW] = m_data1[i*DW+4 +: 9] ;
-                            shift_cnt[i*SFTW +: SFTW] = n-4;
+                            mul_1[i*MULW +: MULW] = m_data1[i*DW+5 +: 12] ;
+                            shift_cnt[i*SFTW +: SFTW] = n-5;
 
                         end
                 default:begin
-                            mul_1[i*MULW +: MULW] = m_data1[i*DW+13 +: 9];
+                            mul_1[i*MULW +: MULW] = m_data1[i*DW+13 +: 13];
                             shift_cnt[i*SFTW +: SFTW] = n-13;
                         end
             endcase
         end
 
-        // mul #(.DW(MULW),.OW(18)) i_mul(
-        //     .d1(mul_1[i*MULW +: MULW]),
-        //     .d2(mul_2[i*MULW +: MULW]),
-        //     .do(p[i*PW +: PW]),
-        //     .clk (clk ),
-        //     .rst_n(rst_n)
-        // );
-
-        mul9 i_mul (
-        .a ( mul_1[i*MULW +: MULW] ),
-        .b ( mul_2[i*MULW +: MULW] ),
-        .p ( p[i*PW +: PW] ),
-        .cea (m_valid1 ),
-        .ceb (m_valid1 ),
-        .cepd (1'b1 ),
-        .clk (clk ),
-        .rstan (rst_n ),
-        .rstbn (rst_n ),
-        .rstpdn (rst_n )
+        mul #(.DW(MULW),.OW(18)) i_mul(
+            .d1(mul_1[i*MULW +: MULW]),
+            .d2(mul_2[i*MULW +: MULW]),
+            .do(p[i*PW +: PW]),
+            .clk (clk ),
+            .rst_n(rst_n)
         );
+
+        // mul9 i_mul (
+        // .a ( mul_1[i*MULW +: MULW] ),
+        // .b ( mul_2[i*MULW +: MULW] ),
+        // .p ( p[i*PW +: PW] ),
+        // .cea (m_valid1 ),
+        // .ceb (m_valid1 ),
+        // .cepd (1'b1 ),
+        // .clk (clk ),
+        // .rstan (rst_n ),
+        // .rstbn (rst_n ),
+        // .rstpdn (rst_n )
+        // );
 
 
         //shift
