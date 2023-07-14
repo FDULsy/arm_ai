@@ -101,7 +101,6 @@ conv_inst_loop #(.IRW(IRW),.IN(IN),AW(AW)) i_inst_loop(
     .rst_n(rst_n)
 );
 
-
 //local_inst unpack
 wire [IFW-1:0] m_rinfo;
 wire [IFW-1:0] dma_r_info;
@@ -118,16 +117,15 @@ wire            addr_last;
 wire            addr_valid;
 wire            addr_ready;
 
-wire [8:0] infop1;//11 maxen1,poolw6,reluen2,fc2
-wire [9:0] infop2;//9  scale_num9
-wire [28:0] infop3;//23
+wire [57 : 0] info
 
-assign dma_r_info = s_local_inst[0*IRW+26 +: IFW];
-assign dma_base = s_local_inst[0*IRW+11 +: AW];
-assign infop1 = s_local_inst[0*IRW+7 +: 23];
+assign dma_r_info = 'h0;
 
-assign {dma_dim0_size,dma_dim0_step,dma_dim1_size,dma_dim1_step} = s_local_inst[1*32+10 +: 20];
-assign infop2 = s_local_inst[1*IRW+1 +: 9];
+assign {dma_dim1_step,dma_dim1_size,dma_dim0_step,dma_dim0_size,dma_base} = s_local_inst[42 : 8];
+
+assign info = {s_local_inst[90:82], s_local_inst[80:72], s_local_inst[70:43],s_local_inst[7 : 0]};
+
+assign infop2 = s_local_inst[];
 assign infop3 = s_local_inst[2*IRW+1 +: 29];
 assign info_bus = {infop1,infop2,infop3,dma_r_info[2:0]};
 

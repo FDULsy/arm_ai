@@ -69,6 +69,7 @@ reg  [AW-1 : 0] w_addr_r  ;
 reg  [AW-1 : 0] w_addr_r1 ;
 reg  [AW-1 : 0] w_addr_r2 ;
 reg  [AW-1 : 0] w_addr_r3 ;
+reg  [AW-1 : 0] w_addr_r4 ;
 
 
 //reg [3:0] cnt;
@@ -198,6 +199,7 @@ always @(posedge clk or negedge rst_n) begin
         w_addr_r1   <= 0;
         w_addr_r2   <= 0;
         w_addr_r3   <= 0;
+        w_addr_r4   <= 0;
         first_r     <= 0;
         last_r      <= 0;
     end
@@ -209,11 +211,12 @@ always @(posedge clk or negedge rst_n) begin
         w_addr_r1   <= w_addr_r;
         w_addr_r2   <= w_addr_r1;
         w_addr_r3   <= w_addr_r2;
+        w_addr_r4   <= w_addr_r3;
         first_r     <= first    ;
         last_r      <= last     ;
     end
 end
-assign m_w_addr = fc? base : w_addr_r3;
+assign m_w_addr = fc? base : w_addr_r4;
 assign m_sum  = sum_r;
 assign s_sum  = sum_r;
 assign s_ctrl = s_ctrl_r;

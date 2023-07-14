@@ -4,37 +4,50 @@ module conv_acc_tn #(
 );
 
 reg clk,rst_n;
-reg [AW-1:0] base2;
+reg [AW-1:0] base;
 reg [10:0] size;
-reg start,first_k,last_k;
-wire [AW-1:0] m_addr2,m_addr3;
+reg start,m_first,s_first;
+wire [AW-1:0] m_addr2,m_addr3,m_w_addr;
 wire m_ready;
 
 reg [DW*DN-1:0] m_data1,m_data2,m_data3;
-reg m_valid1;
+reg m_valid1,m_valid1_pre;
+reg fc;
+reg [CW1-1 : 0] m_ctrl;
+wire [CW2-1 : 0] s_ctrl;
+wire s_first,s_last;
 
 wire [DW*DN-1:0] m_sum,s_sum;
 wire m_valid,s_valid;
 //=====例化=====
-conv_acc #(.AW(AW),.DW(DW),.DN(DN)) i_conv_acc(
+conv_acc #(.AW(AW),.DW(DW),.DN(DN),.CW1(28),.CW2(24)) i_conv_acc(
     .m_data1(m_data1),
+    .m_first(m_first),
+    .m_last(m_last),
     .m_valid1(m_valid1),
+    .m_valid1_pre(m_valid1_pre),
+
     .m_data2(m_data2),
     .m_data3(m_data3),
     .m_ready(m_ready),
 
-    .base2(base2),
-    .size(size),
     .start(start),
-    .first_k(first_k),
-    .last_k(last_k),
+    .fc(fc),
+    .base(base),
+    .size(size),
+    
+    .m_ctrl(m_ctrl),
+    .s_ctrl(s_ctrl),
 
     .m_addr2(m_addr2),
     .m_addr3(m_addr3),
+    .m_w_addr(m_w_addr),
     .m_sum(m_sum),
     .m_valid(m_valid),
     .s_sum(s_sum),
     .s_valid(s_valid),
+    .s_first(s_first),
+    .s_last(s_last),
     .clk(clk),
     .rst_n(rst_n)
 );
@@ -86,6 +99,10 @@ initial begin
     forever begin
        #5 clk=~clk; 
     end 
+
+    forever begin
+        #20 m1_vlaid = m_valid1_pre;
+    end
 end
 
 initial begin
@@ -97,32 +114,9 @@ end
 
 initial begin
     //input inital
-    base2=0;m_data1=0;m_data2=0;m_data3=0;m_valid1=0;
-    size=0;start=0;first_k=0;last_k=0;
+    base=0;m_data1=0;m_data2=0;m_data3=0;m_valid1_pre=0;
+    size=0;start=0;
     //
-    #16 size=8;start=1;first_k=1;base2=10;
-    #10 start=0;
-    #80 m_valid1=1;
-    m_data1=15;m_data2=8;//23
-    #10 m_data1=20;m_data2=11;//31
-    #10 m_data1=-30;m_data2=-9;//-39
-    #10 m_data1=-50;m_data2=11;//-39
-    #10 m_data1=7;m_data2=1;//8
-    #10 m_data1=5;m_data2=-17;//-12
-    #10 m_data1=99;m_data2=50;//149
-    #10 m_data1=125;m_data2=111;//236
-    #10 m_data1=11;m_data2=22;
-
-    #10 m_data1=11;
-    #10 m_data1=12;
-    #10 m_data1=13;
-    #10 m_valid1=0;first_k=0;
-    #20 size=4;start=1;last_k=1;base2=100;m_data1=500;m_data2=200;m_valid1=1;
-    #10 start=0;m_data1=20;m_data2=11;
-    #10 m_data1=21;m_data2=12;
-    #10 m_data1=22;m_data2=13;
-    #10 m_data1=23;m_data2=14;
-    #10 m_valid1=0;
 
     //
     
