@@ -1,4 +1,4 @@
-module delay_chain #(parameter DW=64,DN=8
+module delay_chain #(parameter DW=64,DN=7
 ) (
     input  [DW-1:0] xi,
     output [DW-1:0] xo,

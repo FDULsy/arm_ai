@@ -1,54 +1,52 @@
 module acc_top(
-    input [22*6-1 : 0] acc_m_data,
-    input              acc_m_first,
-    input              acc_m_last,
-    input              acc_m_valid,
-    output             acc_m_ready,
+    input   [26*7-1 : 0]    acc_m_data      ,
+    input                   acc_m_first     ,
+    input                   acc_m_last      ,
+    input                   acc_m_valid     ,
+    input                   acc_m_valid_pre ,
 
-    input [45:0]       info_bus,
+    input                   acc_m_start     ,
+    input                   acc_m_fc        ,
+    input   [8      : 0]    acc_m_base      , 
+    input   [8      : 0]    acc_m_size      ,
 
+    input   [27 : 0]        acc_m_info      ,
 
-    output [47:0]      acc_s_data,
-    output             acc_s_valid,
-    input              acc_s_ready,
+    output [47:0]           acc_s_data      ,
+    output                  acc_s_valid     ,
+    input                   acc_s_ready     ,
+
+    //AHBlite interface
+    input  wire             HCLK     ,    
+    input  wire             HRESETn  , 
+    input  wire             HSEL     ,    
+    input  wire   [31:0]    HADDR    ,   
+    input  wire   [ 1:0]    HTRANS   ,  
+    input  wire   [ 2:0]    HSIZE    ,   
+    input  wire   [ 3:0]    HPROT    ,   
+    input  wire             HWRITE   ,  
+    input  wire   [31:0]    HWDATA   ,   
+    input  wire             HREADY   , 
+    output wire             HREADYOUT, 
+    output wire   [31:0]    HRDATA   ,
+    output wire             HRESP    ,
+    //M0 interrupt interface
+    output  reg             AI_IRQ   ,
 
     input clk,
     input rst_n
 
 );
 
+wire [26*7-1 : 0] m_data2, m_data3;
+wire [8      : 0] m_addr2, m_addr3, m_w_addr;
+wire [26*7-1 : 0] acc_sum, final_sum;
+wire              acc_valid, final_valid;
 
-wire [22*6-1 : 0] m_data2,m_data3;
-wire m_ready;
-wire [9:0] base2,size;
-wire start,first_k,last_k;
-wire [9:0] m_addr2,m_addr3;
-
-wire [22*6-1 : 0] acc_sum;
-wire              acc_valid;
-wire [22*6-1 : 0] final_sum;
-wire              final_valid;
-
-wire [4:0] n;
-wire [8:0] scale_data;
-wire [53:0] m_scale_data;
-wire [1:0] relu_en;
-wire [47:0] s_scale_data;
-wire scale_data_valid;
-
-wire [5:0] pool_width;
-wire pool_en;
-
-//info unpack
-assign base2=info_bus[25:17];
-assign size=info_bus[16:8];
-assign n=info_bus[7:3];
-assign scale_data=info_bus[34:26];
-assign relu_en=info_bus[38:37];
-assign pool_width=info_bus[44:39];
-assign pool_en=info_bus[45];
-
-
+wire [24 : 0]       m_scale_ctrl;
+wire [8  : 0]       s_scale_ctrl;
+wire [8*7-1 : 0]    s_scale_data;
+wire                scale_data_valid;
 
 bias_ram i_biasram_top(
     .addr(m_addr2[8:0]),
@@ -57,61 +55,80 @@ bias_ram i_biasram_top(
     .rst_n(rst_n)
 );
 
-conv_acc i_convacc(
-    .m_data1(acc_m_data),
-    .m_valid1(acc_m_valid),
-    .m_data2(m_data2),
-    .m_data3(m_data3),
-    .m_ready(m_ready),
-    .base2(base2),
-    .size(size),
-    .start(start),
-    .first_k(first_k),
-    .last_k (last_k ),
-    .m_addr2(m_addr2),
-    .m_addr3(m_addr3),
-    .m_sum(acc_sum),
-    .m_valid(acc_valid),
-    .s_sum(final_sum),
-    .s_valid(final_valid),
-
-    .clk(clk),
-    .rst_n(rst_n)
-);
-
 acc_ram i_accramtop(
-    .addr(m_addr3),
-    .datai(acc_sum),
-    .valid(acc_valid),
-    .datao(m_data3),
+    .r_addr(m_addr3),
+    .r_data(m_data3),
+    .w_addr(m_w_addr),
+    .datao(acc_sum),
+    .w_valid(acc_valid),
     .clk(clk),
     .rst_n(rst_n)
 );
 
-assign scale_data_bus={6{scale_data}};
+conv_acc i_convacc(
+    .m_data1        (acc_m_data     ),
+    .m_first        (acc_m_first    ),
+    .m_last         (acc_m_last     ),
+    .m_valid1       (acc_m_valid    ),
+    .m_valid1_pre   (acc_m_valid_pre),
+
+    .m_data2        (m_data2        ),
+    .m_data3        (m_data3        ),
+
+    .start          (acc_m_start    ),
+    .fc             (acc_m_fc       ),
+    .base           (acc_m_base     ),
+    .size           (acc_m_size     ),
+    .m_ctrl         (acc_m_info     ),
+    .s_ctrl         (m_scale_ctrl   ),
+    
+    .m_addr2        (m_addr2        ),
+    .m_addr3        (m_addr3        ),
+    .m_w_addr       (m_w_addr       ),
+    .m_sum          (acc_sum        ),
+    .m_valid        (acc_valid      ),
+    .s_sum          (final_sum      ),
+    .s_valid        (final_valid    ),
+
+    .clk(clk),
+    .rst_n(rst_n)
+);
 
 scale i_scale(
-    .m_data1(final_sum),
-    .m_valid1(final_valid),
-    .m_data2(m_scale_data),
-    .n(n),
-    .relu_en(relu_en),
-    .s_data(s_scale_data),
-    .s_valid(scale_data_valid),
-    .clk(clk),
-    .rst_n(rst_n)
+    .m_data1    (final_sum),
+    .m_valid1   (final_valid),
+    .m_ctrl     (m_scale_ctrl),
+
+    .s_ctrl     (s_scale_ctrl),
+    .s_data     (s_scale_data),
+    .s_valid    (scale_data_valid),
+    .clk        (clk),
+    .rst_n      (rst_n)
 );
 
-
-
 max_pool i_maxpool(
-    .m_data(s_scale_data),
+    .m_data (s_scale_data),
     .m_valid(scale_data_valid),
-    .m_width(pool_width),
-    .m_max_pool_en(pool_en),
-    .s_data(acc_s_data),
+    .m_ctrl (s_scale_ctrl),
+
+    .s_data (acc_s_data),
     .s_valid(acc_s_valid),
     .s_ready(acc_s_ready),
+    .HCLK       (HCLK     ),
+    .HRESETn    (HRESETn  ),
+    .HSEL       (HSEL     ),
+    .HADDR      (HADDR    ),
+    .HTRANS     (HTRANS   ),
+    .HSIZE      (HSIZE    ),
+    .HPROT      (HPROT    ),
+    .HWRITE     (HWRITE   ),
+    .HWDATA     (HWDATA   ),
+    .HREADY     (HREADY   ),
+    .HREADYOUT  (HREADYOUT),
+    .HRDATA     (HRDATA   ),
+    .HRESP      (HRESP    ),
+    .AI_IRQ     (AI_IRQ   ),
+
     .clk(clk),
     .rst_n(rst_n)
 );

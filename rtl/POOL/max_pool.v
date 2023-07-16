@@ -8,23 +8,51 @@
 //输出会比延时一段时间，之后每2拍出一个结果
 //============================================
 module max_pool #(
-    parameter DW=8,DN=6
+    parameter DW=8,DN=7
 ) (
-    input  [DN*DW-1 : 0]    m_data,
-    input                   m_valid,
+    input  [DN*DW-1 : 0]   m_data   ,
+    input                  m_valid  ,
+    input  [       7:0]    m_ctrl   ,
+    input                  m_last   ,
 
-    input  [6:0]            m_ctrl,  //      
-    // input  [5:0] m_width,
-    // input        m_max_pool_en,
+    output [DN*DW-1 : 0]   s_data   ,
+    output                 s_valid  ,
+    input                  s_ready  ,
+    //AHBlite interface
+    input  wire            HCLK     ,    
+    input  wire            HRESETn  , 
+    input  wire            HSEL     ,    
+    input  wire   [31:0]   HADDR    ,   
+    input  wire   [ 1:0]   HTRANS   ,  
+    input  wire   [ 2:0]   HSIZE    ,   
+    input  wire   [ 3:0]   HPROT    ,   
+    input  wire            HWRITE   ,  
+    input  wire   [31:0]   HWDATA   ,   
+    input  wire            HREADY   , 
+    output wire            HREADYOUT, 
+    output wire   [31:0]   HRDATA   ,
+    output wire            HRESP    ,
+    //M0 interrupt interface
+    output  reg            AI_IRQ   ,
 
-    output [DN*DW-1 : 0]    s_data,
-    output                  s_valid,
-    input                   s_ready,
-    
-    input                   clk,
-    input                   rst_n
+    input  wire            clk      ,
+    input  wire            rst_n
 );
-
+//=============================================
+//M0 Interrupt response flag bit. 
+//1 indicates that the interrupt has responded
+//=============================================
+reg          M0_IRQ_FLAG     ;
+reg          M0_IRQ_FLAG_dly ;
+reg          M0_IRQ_FLAG_dly2;
+reg   [31:0] AI_RESULT       ;
+reg          ahb_data_valid  ;
+reg          m_last_dly      ;
+wire         m_last_pos      ;      
+wire         ahb_write_en    ;
+//=============================================
+//=============================================
+//=============================================
 
 wire [5 : 0] m_width;
 wire         m_max_pool_en;
@@ -42,8 +70,14 @@ wire  s_cmp_valid;
 wire  s_valid_w;
 wire [DN*DW-1 : 0] s_data_w;
 
-assign m_width = m_ctrl[5 : 0];
-assign m_max_pool_en = m_ctrl[6];
+// assign m_width = m_ctrl[5 : 0];
+// assign m_max_pool_en = m_ctrl[6];
+// assign m_ack  = m_ctrl[7];
+//上面3行改成下面这4行，用finish和last控制AHB输出
+assign ram_sel = m_ctrl[0];
+assign m_width = m_ctrl[6 : 1];
+assign m_max_pool_en = m_ctrl[7];
+assign finish = m_ctrl[8];
 
 assign cmp_valid = m_valid && m_max_pool_en;
 
@@ -54,7 +88,7 @@ cmp2 #(.DW(DW),.DN(DN)) i_cmp2(
     .s_valid(cmp_tmp_valid),
 
     .clk(clk),
-   .rst_n(rst_n)
+    .rst_n(rst_n)
 );
 
 always @(posedge clk or negedge rst_n) begin
@@ -87,7 +121,7 @@ end
 
 genvar j ;
 generate
-    for (j=0 ;j<63 ;j=j+1 ) begin
+    for (j=0 ;j<63 ;j=j+1 ) begin :U2
         always @(posedge clk or negedge rst_n) begin
             if(!rst_n)
                 cmp_tmp_a[j] <= 0;
@@ -101,7 +135,7 @@ endgenerate
 
 genvar i;
 generate
-    for (i =0 ;i<DN ;i=i+1 ) begin
+    for (i =0 ;i<DN ;i=i+1 ) begin :U3
         cmp #(.DW(DW)) i_cmp(
             .data1(cmp_tmp[i*DW +: DW]),
             .data2(cmp_tmp_a[i][i*DW +: DW]),
@@ -114,7 +148,7 @@ assign s_cmp_valid  =  cmp_tmp_valid && state;
 assign s_pass_valid = !m_max_pool_en && m_valid;
 assign s_valid_w = s_cmp_valid || s_pass_valid;
 assign s_data_w = s_pass_valid? m_data : s_cmp_data;
-
+//*============================================
 axi_frs #(.DW(DN*DW)) i_aix_frs_pool(
     .m_data(s_data_w),
     .m_valid(s_valid_w),
@@ -127,5 +161,62 @@ axi_frs #(.DW(DN*DW)) i_aix_frs_pool(
     .clk(clk),
     .rst_n(rst_n)
 );
+
+//================================================*/
+//===========================
+//  AHBlite data
+//===========================
+assign HRDATA       = AI_RESULT;
+assign HRESP        = 1'b0;
+assign HREADYOUT    = 1'b1;
+assign ahb_write_en = HSEL & HTRANS[1] & HWRITE;
+
+always@(posedge HCLK or HRESETn)begin
+  if(HRESETn == 1'b0)
+    M0_IRQ_FLAG <= 1'b0;
+  else if(ahb_data_valid == 1'b1)
+    M0_IRQ_FLAG <= HWDATA[0];
+end
+
+always@(posedge HCLK or HRESETn)begin
+  if(HRESETn == 1'b0)
+    ahb_data_valid <= 1'b0;
+  else if(ahb_write_en == 1'b1)
+    ahb_data_valid <= 1'b1;
+  else
+    ahb_data_valid <= 1'b0;
+end
+
+always@(posedge clk or negedge rst_n)begin
+  if(rst_n == 1'b0)begin
+    M0_IRQ_FLAG_dly  <= 1'b0;
+    M0_IRQ_FLAG_dly2 <= 1'b0;
+    m_last_dly       <= 1'b0;
+  end
+  else begin
+    M0_IRQ_FLAG_dly  <= M0_IRQ_FLAG    ;
+    M0_IRQ_FLAG_dly2 <= M0_IRQ_FLAG_dly;
+    m_last_dly       <= m_last         ;
+  end
+end
+
+assign m_last_pos = (~m_last_dly) & m_last;
+always@(posedge clk or negedge rst_n)begin
+  if(rst_n == 1'b0)
+    AI_RESULT <= 32'h0;
+  else if(m_last_pos == 1'b1 && finish)
+    AI_RESULT <= m_data[31:0];
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if(rst_n == 1'b0)
+    AI_IRQ <= 1'b0;
+  else if(M0_IRQ_FLAG_dly2 == 1'b1)
+    AI_IRQ <= 1'b0;
+  else if(m_last_pos == 1'b1 && finish)
+    AI_IRQ <= 1'b1;
+end
+
+//=====================
 
 endmodule

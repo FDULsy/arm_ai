@@ -30,14 +30,11 @@ module rmux #(
 
     output                  s_ram_sel       ,
     output [AW-1 : 0]       s_addr0         ,//ram
-    output                  s_addr_first0   ,
-    output                  s_addr_last0    ,
+    output                  s_addr_first   ,
+    output                  s_addr_last    ,
     output                  s_addr_valid0   ,
     input                   s_addr_ready0   ,
 
-    output [AW-1 : 0]       s_addr1         ,//sdram
-    output                  s_addr_first1   ,
-    output                  s_addr_last1    ,
     output                  s_addr_valid1   ,
     input                   s_addr_ready1   ,
 
@@ -55,10 +52,7 @@ wire [DN*DW-1 : 0] data_sel;
 
 wire [AW+2 : 0] m_addr_bus;
 wire [AW+2 : 0] s_addr_bus;
-wire m_addr_valid0;
-wire m_addr_valid1;
-wire m_addr_ready0;
-wire m_addr_ready1;
+
 wire s_addr_ready ;
 
 wire data_ready;
@@ -82,8 +76,8 @@ assign s_addr_ready  = mem_sel? s_addr_ready1 : s_addr_ready0;
 
 axi_frs #(.DW(AW+3)) i_frs_addr0(
     .m_data(m_addr_bus0),
-    .m_valid(m_addr_valid0),
-    .m_ready(m_addr_ready0),
+    .m_valid(m_addr_valid),
+    .m_ready(m_addr_ready),
 
     .s_data(s_addr_bus0),
     .s_valid(s_addr_valid),
@@ -92,7 +86,7 @@ axi_frs #(.DW(AW+3)) i_frs_addr0(
     .clk(clk),
     .rst_n(rst_n)
 );
-assign s_addr_valid
+assign s_addr_valid0 = ~mem_sel && s_addr_valid;
 assign {s_ram_sel,s_addr0,s_addr_first0,s_addr_last0} = s_addr_bus;
 
 

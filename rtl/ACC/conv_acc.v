@@ -1,6 +1,6 @@
 
 module conv_acc #(
-    parameter AW=9,DW=26,DN=7,CW1=28,CW2=24
+    parameter AW=9,DW=26,DN=7,CW1=28,CW2=25
 ) (
     //data可能需要打拍
     input [DW*DN-1 : 0]       m_data1,
@@ -12,7 +12,6 @@ module conv_acc #(
     //input                     m_valid2,
     input [DW*DN-1 : 0]       m_data3,//acc
     //input                     m_valid3,
-    output                    m_ready,
 
     input                     start,//first、base、size、fc提前2拍
     input                     fc  ,
@@ -52,16 +51,16 @@ wire           last_k_r;
 
 wire                    first_k;
 wire                    last_k ;
-wire [2:0]              shift_n;
+wire                    shift_n;
 
 wire [CW2-1 : 0] ctrl2;
 wire [CW2-1 : 0] ctrl2_r;
 reg  [CW2-1 : 0] s_ctrl_r;
 
-assign first_k = m_ctrl[0];
-assign last_k  = m_ctrl[1];
-assign shift_n = m_ctrl[4:2];
-assign ctrl2=m_ctrl[5 +: 15];
+assign first_k = m_ctrl[27];
+assign last_k  = m_ctrl[26];
+assign shift_n = m_ctrl[25];
+assign ctrl2=m_ctrl[24:0];
 
 wire [AW-1 : 0] r_addr_w  ; 
 reg  [AW-1 : 0] r_addr_r  ; 
@@ -165,7 +164,7 @@ assign m_data_bus={m_first,m_last,m_data1_sft,m_data2_sft,ctrl2,first_k,last_k};
 axi_frs #(.DW(2*DW*DN+25)) i_axi_frs_data(
     .m_data(m_data_bus),
     .m_valid(m_valid1),
-    .m_ready(m_ready),
+    .m_ready(),
 
     .s_data(s_data_bus),
     .s_valid(data_valid),

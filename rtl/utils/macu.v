@@ -3,7 +3,7 @@ module macu #(parameter DW = 8,
 )(
     input [DW-1:0]          xi          , 
     input [DW-1:0]          wi          ,
-    input                   w_en   ,
+    input                   w_en        ,
     input [OW-1:0]          ci          , 
  
     output reg [OW-1 :0]    co          ,
@@ -63,15 +63,15 @@ assign p_e = {{SE{p[15]}},p[15:0]};
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         s_p <= 0;
-        s_c <= 0;
+        // s_c <= 0;
     end
     else begin
         s_p <= p_e;
-        s_c <= ci;
+        // s_c <= ci;
     end    
 end
 
-assign co_w= s_p+s_c;
+assign co_w= s_p+ci;
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)

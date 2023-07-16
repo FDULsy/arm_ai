@@ -1,7 +1,7 @@
 //===============验证说明=====================
 //m_data1       ： 累加结果A，每个通道为22位
 
-//m_ctrl        :  共23位，该模块只使用低16位，最低9位m_data2，之后的5位n，再之后的2位relu_en。高7位输出到s_ctrl
+//m_ctrl        :  共24位，该模块只使用低16位，最低9位m_data2，之后的5位n，再之后的2位relu_en。高7位输出到s_ctrl
 //m_data2       ： 缩放因子乘数B，9位
 //n             ： 乘积结果会右移n位
 //relu_en       :  0x:不relu  10:relu  11:leaky_relu
@@ -13,7 +13,7 @@
 
 //根据M的数据大小，可能直接给定固定的n作为localparam
 module scale #(
-    parameter DW=26,DN=7,MULW=13,OW=8,CW1=24,CW2=8
+    parameter DW=26,DN=7,MULW=13,OW=8,CW1=25,CW2=9
 ) (
     input  [DN*DW-1 : 0]    m_data1,
     input                   m_valid1,
@@ -74,10 +74,10 @@ reg  [DN*OW-1 : 0] s_data_w2;
 reg  [DN*OW-1 : 0] s_data_r;
 
 
-assign m_data2 = m_ctrl[0 +: MULW]  ;
-assign n       = m_ctrl[MULW +: 5]  ;
-assign relu_en = m_ctrl[MULW+5 +: 2];
-assign ctrl2   = m_ctrl[MULW+7 +: 8];
+assign m_data2 = m_ctrl[8 : 0]  ;
+assign n       = m_ctrl[13 : 9]  ;
+assign relu_en = m_ctrl[16 : 15];
+assign ctrl2   = {m_ctrl[24:17],m_ctrl[14]};
 
 //sel:0x:取[22:14]  10：高9位前几为0，后几位不为0，取[13+SP -：9]  11：高9位全为0，取[13 -: 9]([13:5])
 assign mul_2 = {DN{m_data2}};

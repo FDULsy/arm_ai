@@ -121,7 +121,7 @@ mac_row #(.DW(DW),.OW(CW),.COLUMN(COLUMN)) i_mac_row6(
 genvar i;
 generate
     for (i = 0;i<COLUMN ;i=i+1 ) begin
-        assign mac_s_data[i*OW +: OW] = {EW{co6[(i+1)*CW-1]},co6[i*CW +: CW]};
+        assign mac_s_data[i*OW +: OW] = {{EW{co6[(i+1)*CW-1]}},co6[i*CW +: CW]};
     end
 endgenerate
 
