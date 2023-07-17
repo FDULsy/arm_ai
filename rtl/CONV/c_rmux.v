@@ -50,6 +50,7 @@ module c_rmux #(
     output                  s_addr_valid2   ,//ram2 ,a_ram_sel=1
     input                   s_addr_ready2   ,
 
+
     input                   clk             ,
     input                   rst_n    
 );
@@ -66,8 +67,8 @@ wire    a_ram_sel;
 wire    d_mem_sel;
 wire    d_ram_sel;
 
-wire [AW+1 : 0] m_addr_bus;
-wire [AW+1 : 0] s_addr_bus;
+wire [AW+8 : 0] m_addr_bus;
+wire [AW+8 : 0] s_addr_bus;
 
 wire [IFW-1 : 0] info_pass ;
 reg  [IFW-1 : 0] s_info_r ;
@@ -81,11 +82,11 @@ reg  [DN*DW-1 : 0] data_out;
 
 wire [DN*DW+1 : 0] m_data_bus;
 wire               m_data_valid;
-wire               m_data_ready;
+// wire               m_data_ready;
 
 wire [DN*DW+1 : 0] s_data_bus;
 
-assign s_read_pic_ready = rinfo[0];
+assign s_read_pic_ready = rinfo[4];
 
 //=================info===========
 // axi_frs #(.DW(52)) i_frs_addr0(    //早2拍
@@ -105,24 +106,11 @@ assign s_info =  m_info; //早3拍
 
 
 //================rinfo===========
-axi_frs #(.DW(IFW)) i_frs_info0(
-    .m_data (rinfo          ),
-    .m_valid(m_addr_valid   ),
-    .m_ready(               ),
+assign mem_sel = rinfo[3];
+assign ram_sel = rinfo[2];
 
-    .s_data (info_pass      ),
-    .s_valid(s_addr_valid   ),
-    .s_ready(s_addr_ready   ),
-
-    .clk(clk),
-    .rst_n(rst_n)
-);
-
-assign mem_sel = rinfo[4];
-assign ram_sel = rinfo[3];
-
-assign a_mem_sel = info_pass[4];
-assign a_ram_sel = info_pass[3];
+assign a_mem_sel = info_pass[3];
+assign a_ram_sel = info_pass[2];
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
@@ -131,15 +119,15 @@ always @(posedge clk or negedge rst_n) begin
         s_info_r <= info_pass;
 end
 
-assign d_mem_sel = s_info_r[4];
-assign d_ram_sel = s_info_r[3];
+assign d_mem_sel = s_info_r[3];
+assign d_ram_sel = s_info_r[2];
 
-assign channel = s_info_r[7:5];
+assign channel = s_info_r[6:4];
 
 //=================addr===========
-assign m_addr_bus = {m_addr_first, m_addr_last, m_addr};
+assign m_addr_bus = {rinfo,m_addr_first, m_addr_last, m_addr};
 
-axi_frs #(.DW(AW+2)) i_frs_addr0(
+axi_frs #(.DW(AW+8)) i_frs_addr0(
     .m_data(m_addr_bus),
     .m_valid(m_addr_valid),
     .m_ready(m_addr_ready),
@@ -152,10 +140,10 @@ axi_frs #(.DW(AW+2)) i_frs_addr0(
     .rst_n(rst_n)
 );
 
-assign {s_addr_first, s_addr_last, s_addr} = s_addr_bus;
+assign {info_pass, s_addr_first, s_addr_last, s_addr} = s_addr_bus;
 assign s_addr_valid0 = ~a_mem_sel && s_addr_valid ;
-assign s_addr_valid1 = a_mem_sel && a_ram_sel && s_addr_valid ;
 assign s_addr_valid1 = a_mem_sel && ~a_ram_sel && s_addr_valid ;
+assign s_addr_valid2 = a_mem_sel && a_ram_sel && s_addr_valid ;
 assign s_addr_ready = mem_sel ? (ram_sel ? s_addr_ready2: s_addr_ready1) : s_addr_ready0;
 
 //=================data===========
@@ -186,13 +174,13 @@ assign last_sel = d_mem_sel ? (d_ram_sel ? m_data_last2 : m_data_last1) : m_data
 assign m_data_bus = {first_sel, last_sel, data_out};
 
 assign m_data_valid = d_mem_sel ? (d_ram_sel ? m_data_valid2 : m_data_valid1) : m_data_valid0 ;
-assign m_data_ready = d_mem_sel ? (d_ram_sel ? m_data_ready2 : m_data_ready1) : m_data_ready0 ;
+// assign m_data_ready = d_mem_sel ? (d_ram_sel ? m_data_ready2 : m_data_ready1) : m_data_ready0 ;
 
 
 axi_frs #(.DW(DN*DW+2)) i_frs_data(
-    .m_data(m_data_bus),
+    .m_data(m_data_bus   ),
     .m_valid(m_data_valid),
-    .m_ready(m_data_ready),
+    .m_ready(            ),
 
     .s_data(s_data_bus),
     .s_valid(s_data_valid),

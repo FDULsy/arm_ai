@@ -2,7 +2,7 @@
 //
 //
 module weightrom#(
-  parameter FC_NUM_WIDTH    =   5,
+  parameter FC_NUM_WIDTH    =   7,
   parameter LRAM_DATA_WIDTH =   8,
   parameter LRAM_ADDR_WIDTH =   8,
   parameter BRAM_DATA_WIDTH =   9,

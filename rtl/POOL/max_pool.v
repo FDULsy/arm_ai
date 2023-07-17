@@ -12,7 +12,7 @@ module max_pool #(
 ) (
     input  [DN*DW-1 : 0]   m_data   ,
     input                  m_valid  ,
-    input  [       7:0]    m_ctrl   ,
+    input  [       8:0]    m_ctrl   ,
     input                  m_last   ,
 
     output [DN*DW-1 : 0]   s_data   ,

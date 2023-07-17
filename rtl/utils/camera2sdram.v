@@ -10,10 +10,17 @@ module camera2sdram #(
     input  wire        HREF       ,
     input  wire [ 7:0] PIC_DATA   ,
     //  to ai core interface
+
+    input              first      ,
+    input              last       ,
+    output  reg        data_first ,
+    output  reg        data_last  ,
+    output wire        data_ready ,
     output  reg        data_valid ,
     output wire [15:0] data_out   ,
     input  wire        r_clk      ,
-    input  wire        rd_ready 
+    input  wire        rd_ready   ,
+    input  wire        rd_en      
 );
 
 reg [ 1:0] curr_state  , next_state   ;
@@ -22,9 +29,11 @@ reg        rst_n_dly   , rst_n_dly2   ;
 reg        rd_ready_dly, rd_ready_dly2;
 reg [15:0] wr_data                    ;
 reg        wr_en_tmp   , wr_en        ;
-reg        rd_en       , HREF_dly     ;
+reg        fifo_rd_en  , HREF_dly     ;
 wire       empty_flag  , HREF_neg     ;
 wire       wr_line_end ;
+reg  [1:0] pixel_data_cnt ;
+reg        pixel_data_valid;
 
 reg [P_LINE_WIDTH - 1: 0] p_line_cnt; 
 //================================================
@@ -76,6 +85,26 @@ always@(*)begin
     default    : next_state = IDLE;
   endcase
 end
+//===============================================
+//pixel data cnt
+//===============================================
+always@(posedge PCLK or negedge RSTn_dly2)begin
+  if(RSTn_dly2 == 1'b0)
+    pixel_data_cnt <= 2'b0;
+  else if( (curr_state == WR_PIC) && (HREF == 1'b1) )
+    pixel_data_cnt <= (pixel_data_cnt == 2'h3) ? pixel_data_cnt : pixel_data_cnt + 1'b1;
+  else
+    pixel_data_cnt <= 2'h0;
+end
+
+always@(posedge PCLK or negedge RSTn_dly2)begin
+  if(RSTn_dly2 == 1'b0)
+    pixel_data_valid <= 1'b0;
+  else if( pixel_data_cnt == 2'h3 )
+    pixel_data_valid <= 1'b1;
+  else
+    pixel_data_valid <= 1'b0;
+end
 
 //===============================================
 // p_line_cnt
@@ -110,7 +139,7 @@ end
 always @(posedge PCLK or negedge RSTn_dly2) begin
   if(RSTn_dly2 == 1'b0)
     wr_en_tmp <= 1'b0;
-  else if( (curr_state == WR_PIC) && (HREF == 1'b1) )
+  else if( (curr_state == WR_PIC) && (HREF == 1'b1) && (p_line_cnt >= 2) && (pixel_data_valid == 1'b1))
     wr_en_tmp <= ~wr_en_tmp;
 end
 
@@ -135,18 +164,18 @@ end
 //================================================
 always @(posedge r_clk or negedge rst_n_dly2) begin
   if(rst_n_dly2 == 1'b0)
-    rd_en <= 1'b0;
-  else if(empty_flag == 1'b0)// fifo is not empty
-    rd_en <= 1'b1;
+    fifo_rd_en <= 1'b0;
+  else if( (empty_flag == 1'b0) && (rd_en == 1'b1))// fifo is not empty
+    fifo_rd_en <= 1'b1;
   else
-    rd_en <= 1'b0;
+    fifo_rd_en <= 1'b0;
 end
 
 always @(posedge r_clk or negedge rst_n_dly2) begin
   if(rst_n_dly2 == 1'b0)
     data_valid <= 1'b0;
   else if(empty_flag == 1'b0)// fifo is not empty
-    data_valid <= rd_en;
+    data_valid <= fifo_rd_en;
   else
     data_valid <= 1'b0;
 end
@@ -157,9 +186,22 @@ wr_fifo u_wr_fifo(
    .clkw       ( PCLK      ),
    .we         ( wr_en     ),
    .clkr       ( r_clk     ),
-   .re         ( rd_en     ),
+   .re         ( fifo_rd_en),
    .do         ( data_out  ),
    .empty_flag ( empty_flag)
 );
 
+always @(posedge r_clk or negedge rst_n_dly2) begin
+  if(!rst_n_dly2) begin
+    data_first <= 0;
+    data_last  <= 0;
+  end
+  else if(rd_en && data_ready ) begin
+    data_first <= first;
+    data_last  <= last;
+  end
+end
+
+
+assign data_ready = ~empty_flag ;
 endmodule

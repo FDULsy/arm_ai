@@ -15,7 +15,22 @@ module ai_top #(parameter AW=14,DW=8,DN=7,DW0=16,IW=36,OW=22,ROW=7,COLUMN=7)
     output wire   [31:0]    HRDATA   ,
     output wire             HRESP    ,
     //M0 interrupt interface
-    output  reg             AI_IRQ   ,
+    output wire             AI_IRQ   ,
+
+    //camera2sdram interface
+    output                  s_read_pic_ready,
+    output                  ifm_addr_first  ,
+    output                  ifm_addr_last   ,
+    output                  ifm_addr_valid0 ,
+    input                   ifm_addr_ready0 ,
+
+    input         [DW0-1:0] pic_data        ,
+    input                   pic_first       ,
+    input                   pic_last        ,
+    input                   pic_valid       ,
+    output                  pic_ready       ,
+
+    output                  rd_ready        ,
 
     input clk,
     input rst_n
@@ -26,7 +41,6 @@ wire [AW-1 : 0] ifm_addr;
 wire ifm_addr_first, ifm_addr_last;
 wire ifm_addr_valid0, ifm_addr_ready0, ifm_addr_valid1, ifm_addr_ready1, ifm_addr_valid2, ifm_addr_ready2;         
 
-wire [DW0-1 : 0] crdma_m_data0;
 wire [DN*DW-1 : 0] crdma_m_data1, crdma_m_data2;
 wire crdma_m_first0, crdma_m_last0, crdma_m_valid0, crdma_m_ready0;
 wire crdma_m_first1, crdma_m_last1, crdma_m_valid1, crdma_m_ready1;
@@ -41,8 +55,6 @@ wire [IW-1 : 0]  inst_s_data;
 wire inst_s_valid, inst_s_ready;
 
 
-
-
 crdma i_crdma(
     .inst_s_data        (inst_s_data        ),
     .inst_s_valid       (inst_s_valid       ),
@@ -51,18 +63,20 @@ crdma i_crdma(
     .ifm_addr_first     (ifm_addr_first     ),
     .ifm_addr_last      (ifm_addr_last      ),
 
+    .s_read_pic_ready   (s_read_pic_ready   ),
+
     .ifm_addr_valid0    (ifm_addr_valid0    ),
     .ifm_addr_ready0    (ifm_addr_ready0    ),
     .ifm_addr_valid1    (ifm_addr_valid1    ),
     .ifm_addr_ready1    (ifm_addr_ready1    ),
-    .ifm_addr_valid1    (ifm_addr_valid2    ),
-    .ifm_addr_ready1    (ifm_addr_ready2    ),
+    .ifm_addr_valid2    (ifm_addr_valid2    ),
+    .ifm_addr_ready2    (ifm_addr_ready2    ),
 
-    .crdma_m_data0      (crdma_m_data0      ),
-    .crdma_m_first0     (crdma_m_first0     ),
-    .crdma_m_last0      (crdma_m_last0      ),
-    .crdma_m_valid0     (crdma_m_valid0     ),
-    .crdma_m_ready0     (crdma_m_ready0     ),
+    .crdma_m_data0      (pic_data           ),
+    .crdma_m_first0     (                   ),
+    .crdma_m_last0      (                   ),
+    .crdma_m_valid0     (pic_valid          ),
+    .crdma_m_ready0     (rd_ready           ),
     .crdma_m_data1      (crdma_m_data1      ),
     .crdma_m_first1     (crdma_m_first1     ),
     .crdma_m_last1      (crdma_m_last1      ),
@@ -212,7 +226,7 @@ cwdma i_cwdma(
     .rst_n              (rst_n          )
 );
 
-ram1 i_ram1(
+ioram i_ram1(
     //r口
     .r_addr             (ifm_addr       ),
     .r_addr_first       (ifm_addr_first ),
@@ -237,7 +251,7 @@ ram1 i_ram1(
     .rst_n              (rst_n          )
 );
 
-ram1 i_ram2(
+ioram i_ram2(
     //r口
     .r_addr             (ifm_addr       ),
     .r_addr_first       (ifm_addr_first ),

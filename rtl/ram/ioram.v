@@ -25,10 +25,10 @@ module ioram #(
 
 assign w_addr_ready =1'b1;
 
-ram_tmp1 i_ram1(
+ram_tmp i_ram1(
     .dia(w_data),
     .addra(w_addr),
-    .cea(w_addr_valid)
+    .cea(w_addr_valid),
     .clka(clk),
     .dob(r_data),
     .addrb(r_addr),
@@ -47,7 +47,7 @@ always @(posedge clk or negedge rst_n) begin
         in_writing <= 1'b1;
 end
 always @(posedge clk or negedge rst_n ) begin
-    if(!rst)
+    if(!rst_n)
         r_addr_ready <= 0;
     else if(r_addr_last && !in_writing)
         r_addr_ready <= 0;

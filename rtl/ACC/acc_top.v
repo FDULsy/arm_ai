@@ -31,7 +31,7 @@ module acc_top(
     output wire   [31:0]    HRDATA   ,
     output wire             HRESP    ,
     //M0 interrupt interface
-    output  reg             AI_IRQ   ,
+    output wire             AI_IRQ   ,
 
     input clk,
     input rst_n
@@ -48,21 +48,25 @@ wire [8  : 0]       s_scale_ctrl;
 wire [8*7-1 : 0]    s_scale_data;
 wire                scale_data_valid;
 
-bias_ram i_biasram_top(
-    .addr(m_addr2[8:0]),
-    .do(m_data2),
-    .clk(clk),
-    .rst_n(rst_n)
+biasram_tmp i_biasram(
+    .doa(m_data2),
+    .dia('h10),
+    .addra(m_addr2),
+    .clka(clk),
+    .wea(1'b0),
+    .rsta(rst_n)
 );
 
-acc_ram i_accramtop(
-    .r_addr(m_addr3),
-    .r_data(m_data3),
-    .w_addr(m_w_addr),
-    .datao(acc_sum),
-    .w_valid(acc_valid),
-    .clk(clk),
-    .rst_n(rst_n)
+accram_tmp i_accram(
+    .dia(acc_sum),
+    .addra(m_w_addr),
+    .cea(acc_valid),
+    .clka(clk),
+
+    .dob(m_data3),
+    .addrb(m_addr3),
+    .clkb(clk),
+    .rstb(rst_n)
 );
 
 conv_acc i_convacc(

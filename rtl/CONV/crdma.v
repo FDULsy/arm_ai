@@ -21,6 +21,8 @@ module crdma #(parameter DW=8,
     output                  ifm_addr_first    ,
     output                  ifm_addr_last     ,
 
+    output                  s_read_pic_ready  ,
+
     output                  ifm_addr_valid0   ,
     input                   ifm_addr_ready0   ,  
     output                  ifm_addr_valid1   ,
@@ -70,10 +72,11 @@ wire [IPW-1:0] s_local_inst;
 wire m_start_valid,s_start_valid;
 wire m_start_ready,s_start_ready;
 
-inst_fetch #(.IW(36),.AW(10)) i_inst_fetch(
+inst_fetch #(.IW(36),.AW(11)) i_inst_fetch(
     .instgen_s_data(inst_m_data),
     .instgen_s_valid(inst_m_valid),
     .instgen_s_ready(inst_m_ready),
+    .finish(finish),
     .clk(clk),
     .rst_n(rst_n)
 );
@@ -126,12 +129,13 @@ wire            addr_ready;
 
 wire [54 : 0] info;
 
+wire finish;
+
+assign finish = s_local_inst[91] && addr_last;
+
 assign dma_r_info = {s_local_inst[63:58],s_local_inst[0]};
 
 assign {dma_dim1_step,dma_dim1_size,dma_dim0_step,dma_dim0_size,dma_base} = s_local_inst[43 : 9];
-
-
-
 
 dma_dim2 #(.AW(AW),.IFW(IFW)) i_dma0(
     .base(dma_base),
@@ -172,11 +176,11 @@ c_rmux #(.DW0(16),.DW(DW),.DN(DN),.IFW(IFW),.AW(AW)) i_rmux(
     .m_data_valid1(crdma_m_valid1),
     .m_data_ready1(crdma_m_ready1),
 
-    .m_data1(crdma_m_data2),
-    .m_data_first1(crdma_m_first2),
-    .m_data_last1(crdma_m_last2),
-    .m_data_valid1(crdma_m_valid2),
-    .m_data_ready1(crdma_m_ready2),
+    .m_data2(crdma_m_data2),
+    .m_data_first2(crdma_m_first2),
+    .m_data_last2(crdma_m_last2),
+    .m_data_valid2(crdma_m_valid2),
+    .m_data_ready2(crdma_m_ready2),
 
     .s_data(crdma_s_data),
     .s_data_first(crdma_s_first),
@@ -195,6 +199,8 @@ c_rmux #(.DW0(16),.DW(DW),.DN(DN),.IFW(IFW),.AW(AW)) i_rmux(
     .m_addr_valid(addr_valid),
     .m_addr_ready(addr_ready),
 
+    .s_read_pic_ready(s_read_pic_ready),
+
     .s_addr(ifm_addr),
     .s_addr_first(ifm_addr_first),
     .s_addr_last(ifm_addr_last),
@@ -203,8 +209,8 @@ c_rmux #(.DW0(16),.DW(DW),.DN(DN),.IFW(IFW),.AW(AW)) i_rmux(
     .s_addr_ready0(ifm_addr_ready0),
     .s_addr_valid1(ifm_addr_valid1),
     .s_addr_ready1(ifm_addr_ready1),
-    .s_addr_valid1(ifm_addr_valid2),
-    .s_addr_ready1(ifm_addr_ready2),
+    .s_addr_valid2(ifm_addr_valid2),
+    .s_addr_ready2(ifm_addr_ready2),
 
     .clk(clk),
     .rst_n(rst_n)
